@@ -106,6 +106,8 @@ type Schema struct {
 	ReadOnly    *bool         `json:"readOnly,omitempty"`    // Indicates that the property is read-only.
 	WriteOnly   *bool         `json:"writeOnly,omitempty"`   // Indicates that the property is write-only.
 	Examples    []interface{} `json:"examples,omitempty"`    // Examples of the instance data that validates against this schema.
+
+	IdTypes []string `json:"$id_types,omitempty"`
 }
 
 // newSchema parses JSON schema data and returns a Schema object.
@@ -121,7 +123,7 @@ func newSchema(jsonSchema []byte) (*Schema, error) {
 
 // initializeSchema sets up the schema structure, resolves URIs, and initializes nested schemas.
 // It populates schema properties from the compiler settings and the parent schema context.
-func (s *Schema) initializeSchema(compiler *Compiler, parent *Schema) {
+func (s *Schema) initializeSchema(compiler *Compiler, parent *Schema) (err error) {
 	s.compiler = compiler
 	s.parent = parent
 
@@ -161,78 +163,143 @@ func (s *Schema) initializeSchema(compiler *Compiler, parent *Schema) {
 		root.setSchema(s.uri, s)
 	}
 
-	initializeNestedSchemas(s, compiler)
-	s.resolveReferences()
+	err = initializeNestedSchemas(s, compiler)
+	if err != nil {
+		return
+	}
+	err = s.resolveReferences()
+	if err != nil {
+		return
+	}
+	return
 }
 
 // initializeNestedSchemas initializes all nested or related schemas as defined in the structure.
-func initializeNestedSchemas(s *Schema, compiler *Compiler) {
+func initializeNestedSchemas(s *Schema, compiler *Compiler) (err error) {
 	if s.Defs != nil {
 		for _, def := range s.Defs {
-			def.initializeSchema(compiler, s)
+			err = def.initializeSchema(compiler, s)
+			if err != nil {
+				return
+			}
 		}
 	}
 	// Initialize logical schema groupings
-	initializeSchemas(s.AllOf, compiler, s)
-	initializeSchemas(s.AnyOf, compiler, s)
-	initializeSchemas(s.OneOf, compiler, s)
+	err = initializeSchemas(s.AllOf, compiler, s)
+	if err != nil {
+		return
+	}
+	err = initializeSchemas(s.AnyOf, compiler, s)
+	if err != nil {
+		return
+	}
+	err = initializeSchemas(s.OneOf, compiler, s)
+	if err != nil {
+		return
+	}
 
 	// Initialize conditional schemas
 	if s.Not != nil {
-		s.Not.initializeSchema(compiler, s)
+		err = s.Not.initializeSchema(compiler, s)
+		if err != nil {
+			return
+		}
 	}
 	if s.If != nil {
-		s.If.initializeSchema(compiler, s)
+		err = s.If.initializeSchema(compiler, s)
+		if err != nil {
+			return
+		}
 	}
 	if s.Then != nil {
-		s.Then.initializeSchema(compiler, s)
+		err = s.Then.initializeSchema(compiler, s)
+		if err != nil {
+			return
+		}
 	}
 	if s.Else != nil {
-		s.Else.initializeSchema(compiler, s)
+		err = s.Else.initializeSchema(compiler, s)
+		if err != nil {
+			return
+		}
 	}
 	if s.DependentSchemas != nil {
 		for _, depSchema := range s.DependentSchemas {
-			depSchema.initializeSchema(compiler, s)
+			err = depSchema.initializeSchema(compiler, s)
+			if err != nil {
+				return
+			}
 		}
 	}
 
 	// Initialize array and object schemas
 	if s.PrefixItems != nil {
 		for _, item := range s.PrefixItems {
-			item.initializeSchema(compiler, s)
+			err = item.initializeSchema(compiler, s)
+			if err != nil {
+				return
+			}
 		}
 	}
 	if s.Items != nil {
-		s.Items.initializeSchema(compiler, s)
+		err = s.Items.initializeSchema(compiler, s)
+		if err != nil {
+			return
+		}
 	}
 	if s.Contains != nil {
-		s.Contains.initializeSchema(compiler, s)
+		err = s.Contains.initializeSchema(compiler, s)
+		if err != nil {
+			return
+		}
 	}
 	if s.AdditionalProperties != nil {
-		s.AdditionalProperties.initializeSchema(compiler, s)
+		err = s.AdditionalProperties.initializeSchema(compiler, s)
+		if err != nil {
+			return
+		}
 	}
 	if s.Properties != nil {
 		for _, prop := range *s.Properties {
-			prop.initializeSchema(compiler, s)
+			err = prop.initializeSchema(compiler, s)
+			if err != nil {
+				return
+			}
 		}
 	}
 	if s.PatternProperties != nil {
 		for _, prop := range *s.PatternProperties {
-			prop.initializeSchema(compiler, s)
+			err = prop.initializeSchema(compiler, s)
+			if err != nil {
+				return
+			}
 		}
 	}
 	if s.UnevaluatedProperties != nil {
-		s.UnevaluatedProperties.initializeSchema(compiler, s)
+		err = s.UnevaluatedProperties.initializeSchema(compiler, s)
+		if err != nil {
+			return
+		}
 	}
 	if s.UnevaluatedItems != nil {
-		s.UnevaluatedItems.initializeSchema(compiler, s)
+		err = s.UnevaluatedItems.initializeSchema(compiler, s)
+		if err != nil {
+			return
+		}
 	}
 	if s.ContentSchema != nil {
-		s.ContentSchema.initializeSchema(compiler, s)
+		err = s.ContentSchema.initializeSchema(compiler, s)
+		if err != nil {
+			return
+		}
 	}
 	if s.PropertyNames != nil {
-		s.PropertyNames.initializeSchema(compiler, s)
+		err = s.PropertyNames.initializeSchema(compiler, s)
+		if err != nil {
+			return
+		}
 	}
+	return
 }
 
 // setAnchor creates or updates the anchor mapping for the current schema and propagates it to parent schemas.
@@ -295,12 +362,16 @@ func (s *Schema) getSchema(ref string) (*Schema, error) {
 }
 
 // initializeSchemas iteratively initializes a list of nested schemas.
-func initializeSchemas(schemas []*Schema, compiler *Compiler, parent *Schema) {
+func initializeSchemas(schemas []*Schema, compiler *Compiler, parent *Schema) (err error) {
 	for _, schema := range schemas {
 		if schema != nil {
-			schema.initializeSchema(compiler, parent)
+			err = schema.initializeSchema(compiler, parent)
+			if err != nil {
+				return
+			}
 		}
 	}
+	return
 }
 
 // GetSchemaURI returns the resolved URI for the schema, or an empty string if no URI is defined.

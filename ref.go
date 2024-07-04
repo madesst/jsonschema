@@ -1,6 +1,8 @@
 package jsonschema
 
 import (
+	"errors"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -57,7 +59,7 @@ func (s *Schema) resolveRefWithFullURL(ref string) (*Schema, error) {
 
 	// If not found in the current schema or its parents, look for the reference in the compiler
 	if resolved, err := s.compiler.GetSchema(ref); err != nil {
-		return nil, ErrFailedToResolveGlobalReference
+		return nil, errors.New(fmt.Sprintf("%s: %s", ErrFailedToResolveGlobalReference, ref))
 	} else {
 		return resolved, nil
 	}
@@ -124,22 +126,29 @@ func findSchemaInSegment(currentSchema *Schema, segment string, previousSegment 
 	return nil, false
 }
 
-func (s *Schema) resolveReferences() {
+func (s *Schema) resolveReferences() (err error) {
 	// Resolve the root reference if this schema itself is a reference
 	if s.Ref != "" {
-		resolved, _ := s.resolveRef(s.Ref) // Resolve against root schema
-		s.ResolvedRef = resolved
+		s.ResolvedRef, err = s.resolveRef(s.Ref) // Resolve against root schema
+		if err != nil {
+			return
+		}
 	}
 
 	if s.DynamicRef != "" {
-		resolved, _ := s.resolveRef(s.DynamicRef) // Resolve dynamic references against root schema
-		s.ResolvedDynamicRef = resolved
+		s.ResolvedDynamicRef, err = s.resolveRef(s.DynamicRef) // Resolve dynamic references against root schema
+		if err != nil {
+			return
+		}
 	}
 
 	// Recursively resolve references within definitions
 	if s.Defs != nil {
 		for _, defSchema := range s.Defs {
-			defSchema.resolveReferences()
+			err = defSchema.resolveReferences()
+			if err != nil {
+				return
+			}
 		}
 	}
 
@@ -147,45 +156,80 @@ func (s *Schema) resolveReferences() {
 	if s.Properties != nil {
 		for _, schema := range *s.Properties {
 			if schema != nil {
-				schema.resolveReferences()
+				err = schema.resolveReferences()
+				if err != nil {
+					return
+				}
 			}
 		}
 	}
 
 	// Additional fields that can have subschemas
-	resolveSubschemaList(s.AllOf)
-	resolveSubschemaList(s.AnyOf)
-	resolveSubschemaList(s.OneOf)
+	err = resolveSubschemaList(s.AllOf)
+	if err != nil {
+		return
+	}
+	err = resolveSubschemaList(s.AnyOf)
+	if err != nil {
+		return
+	}
+	err = resolveSubschemaList(s.OneOf)
+	if err != nil {
+		return
+	}
 	if s.Not != nil {
-		s.Not.resolveReferences()
+		err = s.Not.resolveReferences()
+		if err != nil {
+			return
+		}
 	}
 	if s.Items != nil {
-		s.Items.resolveReferences()
+		err = s.Items.resolveReferences()
+		if err != nil {
+			return
+		}
 	}
 	if s.PrefixItems != nil {
 		for _, schema := range s.PrefixItems {
-			schema.resolveReferences()
+			err = schema.resolveReferences()
+			if err != nil {
+				return
+			}
 		}
 	}
 
 	if s.AdditionalProperties != nil {
-		s.AdditionalProperties.resolveReferences()
+		err = s.AdditionalProperties.resolveReferences()
+		if err != nil {
+			return
+		}
 	}
 	if s.Contains != nil {
-		s.Contains.resolveReferences()
+		err = s.Contains.resolveReferences()
+		if err != nil {
+			return
+		}
 	}
 	if s.PatternProperties != nil {
 		for _, schema := range *s.PatternProperties {
-			schema.resolveReferences()
+			err = schema.resolveReferences()
+			if err != nil {
+				return
+			}
 		}
 	}
+	return
 }
 
 // Helper function to resolve references in a list of schemas
-func resolveSubschemaList(schemas []*Schema) {
+func resolveSubschemaList(schemas []*Schema) (err error) {
 	for _, schema := range schemas {
 		if schema != nil {
-			schema.resolveReferences()
+			err = schema.resolveReferences()
+			if err != nil {
+				return
+			}
 		}
 	}
+	return
 }

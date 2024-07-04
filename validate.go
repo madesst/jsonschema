@@ -1,5 +1,11 @@
 package jsonschema
 
+import (
+	"encoding/json"
+	"io"
+	"strings"
+)
+
 // Evaluate checks if the given instance conforms to the schema.
 func (s *Schema) Validate(instance interface{}) *EvaluationResult {
 	dynamicScope := NewDynamicScope()
@@ -31,6 +37,38 @@ func (s *Schema) evaluate(instance interface{}, dynamicScope *DynamicScope) (*Ev
 		// Compile patterns for PatternProperties if not already compiled
 		if s.PatternProperties != nil {
 			s.compilePatterns()
+		}
+
+		if len(s.Ref) > 0 {
+			parsedRef, _ := urlParse(s.Ref)
+			if parsedRef.Scheme == "" {
+				s.ResolvedRef = nil
+				var err error
+
+				if getDataType(instance) != "object" {
+					panic("instance is not an object")
+					//result.AddError(
+					//	NewEvaluationError("@type", "type_not_found", "Cant find the reference type schema"),
+					//)
+				}
+				value, ok := instance.(map[string]interface{})
+				if !ok {
+					panic("instance is not an object")
+				}
+				if _, ok := value["@type"]; !ok {
+					panic("@type not found")
+					//result.AddError(
+					//	NewEvaluationError("@type", "type_not_found", "Cant find the reference type schema"),
+					//)
+				}
+
+				s.ResolvedRef, err = s.resolveRef(value["@type"].(string))
+				if err != nil {
+					result.AddError(
+						NewEvaluationError("@type", "type_cant_reach", "Cant reach the reference type schema"),
+					)
+				}
+			}
 		}
 
 		// Check if there is a resolved reference and validate against it if present
@@ -251,6 +289,13 @@ func (s *Schema) evaluate(instance interface{}, dynamicScope *DynamicScope) (*Ev
 				result.AddError(contentError)
 			}
 		}
+
+		if len(s.IdTypes) > 0 {
+			idErrors := evaluateId(s, s.compiler, instance)
+			for _, idError := range idErrors {
+				result.AddError(idError)
+			}
+		}
 	}
 
 	// Pop the schema from the dynamic scope
@@ -279,6 +324,55 @@ func (s *Schema) evaluateBoolean(instance interface{}, evaluatedProps map[string
 	} else {
 		return NewEvaluationError("schema", "false_schema_mismatch", "No values are allowed because the schema is set to 'false'")
 	}
+}
+
+func evaluateId(schema *Schema, compiler *Compiler, data interface{}) []*EvaluationError {
+	url, ok := data.(string)
+	if !ok {
+		// If data is not a string, then skip the string-specific validations.
+		return nil
+	}
+
+	errors := []*EvaluationError{}
+
+	loader, ok := compiler.Loaders[getURLScheme(url)]
+	if !ok {
+		return append(errors, NewEvaluationError("@id", "id_cant_reach", "Cant reach the referenced object"))
+	}
+
+	body, err := loader(url)
+	if err != nil {
+		return append(errors, NewEvaluationError("@id", "id_cant_reach", "Cant reach the referenced object"))
+	}
+	defer body.Close() //nolint:errcheck
+
+	objectData, err := io.ReadAll(body)
+	if err != nil {
+		return append(errors, NewEvaluationError("@id", "id_cant_reach", "Cant reach the referenced object"))
+	}
+	type (
+		WithType struct {
+			Type string `json:"@type"`
+		}
+	)
+	withTypeInstance := WithType{}
+	err = json.Unmarshal(objectData, &withTypeInstance)
+	if err != nil {
+		return append(errors, NewEvaluationError("@id", "id_without_type", "Referenced object does not contains @type"))
+	}
+
+	parsedType, err := urlParse(withTypeInstance.Type)
+	if err != nil {
+		return append(errors, NewEvaluationError("@id", "id_invalid_type", "Referenced object does not contains valid @type"))
+	}
+
+	for _, idType := range schema.IdTypes {
+		if strings.HasPrefix(parsedType.Path, idType) {
+			return nil
+		}
+	}
+
+	return append(errors, NewEvaluationError("@id", "id_forbidden_type", "Referenced object does not contains permitted @type"))
 }
 
 // evaluateObject groups the validation of all object-specific keywords.
