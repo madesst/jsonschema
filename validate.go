@@ -361,6 +361,12 @@ func evaluateId(schema *Schema, compiler *Compiler, data interface{}) []*Evaluat
 		return append(errors, NewEvaluationError("@id", "id_without_type", "Referenced object does not contains @type"))
 	}
 
+	for _, idType := range schema.IdTypes {
+		if withTypeInstance.Type == idType {
+			return nil
+		}
+	}
+
 	parsedType, err := urlParse(withTypeInstance.Type)
 	if err != nil {
 		return append(errors, NewEvaluationError("@id", "id_invalid_type", "Referenced object does not contains valid @type"))
