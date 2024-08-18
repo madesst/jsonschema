@@ -1,6 +1,7 @@
 package jsonschema
 
 import (
+	"dario.cat/mergo"
 	"encoding/json"
 	"io"
 	"strings"
@@ -382,15 +383,46 @@ func evaluateId(schema *Schema, compiler *Compiler, data interface{}) []*Evaluat
 }
 
 // evaluateObject groups the validation of all object-specific keywords.
-func evaluateObject(schema *Schema, data interface{}, evaluatedProps map[string]bool, evaluatedItems map[int]bool, dynamicScope *DynamicScope) ([]*EvaluationResult, []*EvaluationError) {
+func evaluateObject(schema *Schema, data interface{}, evaluatedProps map[string]bool, evaluatedItems map[int]bool, dynamicScope *DynamicScope) (results []*EvaluationResult, errors []*EvaluationError) {
 	object, ok := data.(map[string]interface{})
 	if !ok {
 		// If data is not an object, then skip the object-specific validations.
 		return nil, nil
 	}
 
-	results := []*EvaluationResult{}
-	errors := []*EvaluationError{}
+	results = []*EvaluationResult{}
+	errors = []*EvaluationError{}
+
+	if object["@parent"] != nil {
+		url := object["@parent"].(string)
+		loader, ok := schema.compiler.Loaders[getURLScheme(url)]
+		if !ok {
+			errors = append(errors, NewEvaluationError("@id", "id_cant_reach", "Cant reach the referenced object"))
+			return
+		}
+
+		body, err := loader(url)
+		if err != nil {
+			errors = append(errors, NewEvaluationError("@id", "id_cant_reach", "Cant reach the referenced object"))
+			return
+		}
+		defer body.Close() //nolint:errcheck
+
+		objectData, err := io.ReadAll(body)
+		if err != nil {
+			errors = append(errors, NewEvaluationError("@id", "id_cant_reach", "Cant reach the referenced object"))
+			return
+		}
+
+		parentObject := map[string]interface{}{}
+		err = json.Unmarshal(objectData, &object)
+
+		err = mergo.Merge(&parentObject, object, mergo.WithOverride)
+		if err != nil {
+			panic(err)
+		}
+		object = parentObject
+	}
 
 	// Validation Keywords for applying subschemas to Objects
 	if schema.Properties != nil {
@@ -463,7 +495,7 @@ func evaluateObject(schema *Schema, data interface{}, evaluatedProps map[string]
 		}
 	}
 
-	return results, errors
+	return
 }
 
 // validateNumeric groups the validation of all numeric-specific keywords.
