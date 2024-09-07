@@ -397,20 +397,20 @@ func evaluateObject(schema *Schema, data interface{}, evaluatedProps map[string]
 		url := object["@parent"].(string)
 		loader, ok := schema.compiler.Loaders[getURLScheme(url)]
 		if !ok {
-			errors = append(errors, NewEvaluationError("@id", "id_cant_reach", "Cant reach the referenced object"))
+			errors = append(errors, NewEvaluationError("@parent", "parent_cant_reach", "Cant reach the referenced object"))
 			return
 		}
 
-		body, err := loader(url)
+		body, err := loader(url + "?tenantOverride=false")
 		if err != nil {
-			errors = append(errors, NewEvaluationError("@id", "id_cant_reach", "Cant reach the referenced object"))
+			errors = append(errors, NewEvaluationError("@parent", "parent_cant_reach", "Cant reach the referenced object"))
 			return
 		}
 		defer body.Close() //nolint:errcheck
 
 		objectData, err := io.ReadAll(body)
 		if err != nil {
-			errors = append(errors, NewEvaluationError("@id", "id_cant_reach", "Cant reach the referenced object"))
+			errors = append(errors, NewEvaluationError("@parent", "parent_cant_reach", "Cant reach the referenced object"))
 			return
 		}
 

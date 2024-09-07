@@ -95,6 +95,8 @@ func (c *Compiler) resolveSchemaURL(url string) (*Schema, error) {
 		return nil, err
 	}
 
+	c.schemas[id] = schema
+
 	if anchor != "" {
 		return schema.resolveAnchor(anchor)
 	}
