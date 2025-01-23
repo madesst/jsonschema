@@ -49,24 +49,24 @@ func (s *Schema) evaluate(instance interface{}, dynamicScope *DynamicScope) (*Ev
 				if getDataType(instance) != "object" {
 					panic("instance is not an object")
 					//result.AddError(
-					//	NewEvaluationError("@type", "type_not_found", "Cant find the reference type schema"),
+					//	NewEvaluationError("@schema", "type_not_found", "Cant find the reference type schema"),
 					//)
 				}
 				value, ok := instance.(map[string]interface{})
 				if !ok {
 					panic("instance is not an object")
 				}
-				if _, ok := value["@type"]; !ok {
-					panic("@type not found")
+				if _, ok := value["@schema"]; !ok {
+					panic("@schema not found")
 					//result.AddError(
-					//	NewEvaluationError("@type", "type_not_found", "Cant find the reference type schema"),
+					//	NewEvaluationError("@schema", "type_not_found", "Cant find the reference type schema"),
 					//)
 				}
 
-				s.ResolvedRef, err = s.resolveRef(value["@type"].(string))
+				s.ResolvedRef, err = s.resolveRef(value["@schema"].(string))
 				if err != nil {
 					result.AddError(
-						NewEvaluationError("@type", "type_cant_reach", "Cant reach the reference type schema"),
+						NewEvaluationError("@schema", "schema_cant_reach", "Cant reach the reference @schema"),
 					)
 				}
 			}
@@ -291,7 +291,7 @@ func (s *Schema) evaluate(instance interface{}, dynamicScope *DynamicScope) (*Ev
 			}
 		}
 
-		if len(s.IdTypes) > 0 {
+		if len(s.ObjectSchemas) > 0 {
 			idErrors := evaluateId(s, s.compiler, instance)
 			for _, idError := range idErrors {
 				result.AddError(idError)
@@ -352,34 +352,34 @@ func evaluateId(schema *Schema, compiler *Compiler, data interface{}) []*Evaluat
 		return append(errors, NewEvaluationError("@id", "id_cant_reach", "Cant reach the referenced object"))
 	}
 	type (
-		WithType struct {
-			Type string `json:"@type"`
+		WithSchema struct {
+			Schema string `json:"@schema"`
 		}
 	)
-	withTypeInstance := WithType{}
-	err = json.Unmarshal(objectData, &withTypeInstance)
+	withSchemaInstance := WithSchema{}
+	err = json.Unmarshal(objectData, &withSchemaInstance)
 	if err != nil {
-		return append(errors, NewEvaluationError("@id", "id_without_type", "Referenced object does not contains @type"))
+		return append(errors, NewEvaluationError("@id", "id_without_schema", "Referenced object does not contains @schema"))
 	}
 
-	for _, idType := range schema.IdTypes {
-		if withTypeInstance.Type == idType {
+	for targetObjectSchema := range schema.ObjectSchemas {
+		if withSchemaInstance.Schema == targetObjectSchema {
 			return nil
 		}
 	}
 
-	parsedType, err := urlParse(withTypeInstance.Type)
+	parsedType, err := urlParse(withSchemaInstance.Schema)
 	if err != nil {
-		return append(errors, NewEvaluationError("@id", "id_invalid_type", "Referenced object does not contains valid @type"))
+		return append(errors, NewEvaluationError("@id", "id_invalid_schema", "Referenced object does not contains valid @schema"))
 	}
 
-	for _, idType := range schema.IdTypes {
-		if strings.HasPrefix(parsedType.Path, idType) {
+	for targetObjectSchema := range schema.ObjectSchemas {
+		if strings.HasPrefix(parsedType.Path, targetObjectSchema) {
 			return nil
 		}
 	}
 
-	return append(errors, NewEvaluationError("@id", "id_forbidden_type", "Referenced object does not contains permitted @type"))
+	return append(errors, NewEvaluationError("@id", "id_forbidden_schema", "Referenced object does not contains permitted @schema"))
 }
 
 // evaluateObject groups the validation of all object-specific keywords.
