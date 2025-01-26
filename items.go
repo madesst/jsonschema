@@ -35,14 +35,20 @@ func evaluateItems(schema *Schema, array []interface{}, evaluatedProps map[strin
 			item := array[i]
 			result, _, _ := schema.Items.evaluate(item, dynamicScope)
 			if result != nil {
-				result.SetEvaluationPath(fmt.Sprintf("/items/%d", i)).
-					SetSchemaLocation(schema.GetSchemaLocation(fmt.Sprintf("/items/%d", i))).
-					SetInstanceLocation(fmt.Sprintf("/%d", i))
+				anchor := fmt.Sprintf("/items/%d", i)
+				instanceLocation := fmt.Sprintf("/%d", i)
+
+				result.SetEvaluationPath(anchor).
+					SetSchemaLocation(schema.GetSchemaLocation(anchor)).
+					SetInstanceLocation(instanceLocation)
+
+				result.Details = recursiveUpdateDetailsWithItemAnchor(schema, result.Details, anchor, instanceLocation)
 
 				if result.IsValid() {
 					evaluatedItems[i] = true // Mark the item as evaluated if it passes schema validation.
 				} else {
 					invalid_indexs = append(invalid_indexs, strconv.Itoa(i))
+					results = append(results, result)
 				}
 			}
 		}
@@ -58,4 +64,16 @@ func evaluateItems(schema *Schema, array []interface{}, evaluatedProps map[strin
 		})
 	}
 	return results, nil
+}
+
+func recursiveUpdateDetailsWithItemAnchor(schema *Schema, details []*EvaluationResult, anchor string, instanceLocation string) []*EvaluationResult {
+	for key, value := range details {
+		originEvalPath := value.EvaluationPath
+		value.SetEvaluationPath(fmt.Sprintf("%s%s", anchor, originEvalPath)).
+			SetSchemaLocation(schema.GetSchemaLocation(fmt.Sprintf("%s%s", anchor, originEvalPath))).
+			SetInstanceLocation(fmt.Sprintf("%s%s", instanceLocation, value.InstanceLocation))
+		value.Details = recursiveUpdateDetailsWithItemAnchor(schema, value.Details, anchor, instanceLocation)
+		details[key] = value
+	}
+	return details
 }
