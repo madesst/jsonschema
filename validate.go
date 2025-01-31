@@ -328,7 +328,7 @@ func (s *Schema) evaluateBoolean(instance interface{}, evaluatedProps map[string
 }
 
 func evaluateId(schema *Schema, compiler *Compiler, data interface{}) []*EvaluationError {
-	url, ok := data.(string)
+	uri, ok := data.(string)
 	if !ok {
 		// If data is not a string, then skip the string-specific validations.
 		return nil
@@ -336,12 +336,12 @@ func evaluateId(schema *Schema, compiler *Compiler, data interface{}) []*Evaluat
 
 	errors := []*EvaluationError{}
 
-	loader, ok := compiler.Loaders[getURLScheme(url)]
+	loader, ok := compiler.Loaders[getURLScheme(uri)]
 	if !ok {
 		return append(errors, NewEvaluationError("@id", "id_cant_reach", "Cant reach the referenced object"))
 	}
 
-	body, err := loader(url)
+	body, err := loader(uri)
 	if err != nil {
 		return append(errors, NewEvaluationError("@id", "id_cant_reach", "Cant reach the referenced object"))
 	}
@@ -364,6 +364,11 @@ func evaluateId(schema *Schema, compiler *Compiler, data interface{}) []*Evaluat
 
 	for targetObjectSchema := range schema.ObjectSchemas {
 		if withSchemaInstance.Schema == targetObjectSchema {
+			// full match including a possible version
+			return nil
+		}
+		if strings.HasPrefix(withSchemaInstance.Schema, targetObjectSchema) {
+			// match without version
 			return nil
 		}
 	}
