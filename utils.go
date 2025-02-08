@@ -74,7 +74,7 @@ func getDataType(v interface{}) string {
 	case map[string]interface{}:
 		return "object"
 	default:
-		return "unknown"
+		return reflect.TypeOf(v).String()
 	}
 	return "unknown"
 }
