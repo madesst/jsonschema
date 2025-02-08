@@ -71,7 +71,7 @@ func getDataType(v interface{}) string {
 		return "array"
 	case []bool, []json.Number, []float32, []float64, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []string:
 		return "array"
-	case map[string]interface{}:
+	case map[string]interface{}, map[string][]string:
 		return "object"
 	default:
 		return reflect.TypeOf(v).String()
