@@ -18,9 +18,44 @@ func main() {
     "@schema": {
       "type": "string"
     },
-    "@kind": {
+    "@archetype": {
       "const": "unit"
     },
+    "@kind": {
+      "const": "INDIVIDUAL_ENTITY"
+    },
+    "@meta": {
+  "type": "object",
+  "properties": {
+    "@createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "@updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "@etag": {
+      "type": "string"
+    },
+    "@with": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string",
+		  "format": "uuid"
+        }
+      }
+    }
+  },
+  "required": [
+    "@createdAt",
+    "@updatedAt",
+    "@etag"
+  ],
+  "unevaluatedProperties": false
+},
     "@labels": {
       "properties": {
         "name": {
@@ -60,7 +95,9 @@ func main() {
   "required": [
     "@id",
     "@schema",
+    "@archetype",
     "@kind",
+    "@meta",
     "@labels",
     "@forms",
     "@context-forms",
@@ -78,7 +115,7 @@ func main() {
     {
       "@id": "new://INDIVIDUAL_ENTITY__SELF",
       "@schema": "json-ir://local@madesst/form/finance/INDIVIDUAL_ENTITY__SELF?12321312123123",
-      "@kind": "form",
+      "@archetype": "form",
       "@fields": {
         "name": "T"
       }
@@ -98,8 +135,11 @@ func main() {
     "@schema": {
       "type": "string"
     },
-    "@kind": {
+    "@archetype": {
       "const": "form"
+    },
+    "@kind": {
+      "const": "INDIVIDUAL_ENTITY__SELF"
     },
     "@fields": {
       "properties": {
@@ -118,6 +158,7 @@ func main() {
   "required": [
     "@id",
     "@schema",
+    "@archetype",
     "@kind",
     "@fields"
   ],
@@ -145,7 +186,16 @@ func main() {
     }
   },
   "@id": "tf://LOCAL@madesst/unit/c35ac8c6-ea79-4398-8ed7-521eea14a472",
-  "@kind": "unit",
+  "@archetype": "unit",
+  "@kind": "INDIVIDUAL_ENTITY",
+  "@meta": {
+    "@createdAt": "2021-08-31T07:00:00Z",
+    "@updatedAt": "2021-08-31T07:00:00Z",
+	"@etag": "c35ac8c6-ea79-4398-8ed7-521eea14a472",
+    "@with": {
+      "DIRECTOR": ["tf://LOCAL@madesst/unit/9767f7b0-1c25-4010-9138-40f26eee33bc"]
+    }
+  },
   "@labels": {
     "name": "Test Individual Entity"
   },

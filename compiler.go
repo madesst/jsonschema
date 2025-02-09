@@ -110,6 +110,10 @@ func (c *Compiler) SetSchema(uri string, schema *Schema) *Compiler {
 	return c
 }
 
+func (c *Compiler) GetSchemas() map[string]*Schema {
+	return c.schemas
+}
+
 // GetSchema retrieves a schema by reference. If the schema is not found in the cache and the ref is a URL, it tries to resolve it.
 func (c *Compiler) GetSchema(ref string) (*Schema, error) {
 	baseURI, anchor := splitRef(ref)
