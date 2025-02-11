@@ -372,10 +372,10 @@ func evaluateId(schema *Schema, compiler *Compiler, data interface{}) []*Evaluat
 	//	}
 	//}
 
-	parsedType, err := urlParse(withSchemaInstance.Schema)
-	if err != nil {
-		return append(errors, NewEvaluationError("@id", "id_invalid_schema", "Referenced object does not contains valid @schema"))
-	}
+	//parsedType, err := urlParse(withSchemaInstance.Schema)
+	//if err != nil {
+	//	return append(errors, NewEvaluationError("@id", "id_invalid_schema", "Referenced object does not contains valid @schema"))
+	//}
 
 	//for targetObjectSchema := range schema.XTFAcceptedObjects {
 	//	if strings.HasPrefix(parsedType.Path, targetObjectSchema) {
