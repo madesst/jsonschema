@@ -4,7 +4,6 @@ import (
 	"dario.cat/mergo"
 	"encoding/json"
 	"io"
-	"strings"
 )
 
 // Evaluate checks if the given instance conforms to the schema.
@@ -291,12 +290,12 @@ func (s *Schema) evaluate(instance interface{}, dynamicScope *DynamicScope) (*Ev
 			}
 		}
 
-		if len(s.XTFAcceptedObjects) > 0 {
-			idErrors := evaluateId(s, s.compiler, instance)
-			for _, idError := range idErrors {
-				result.AddError(idError)
-			}
-		}
+		//if len(s.XTFAcceptedObjects) > 0 {
+		//	idErrors := evaluateId(s, s.compiler, instance)
+		//	for _, idError := range idErrors {
+		//		result.AddError(idError)
+		//	}
+		//}
 	}
 
 	// Pop the schema from the dynamic scope
@@ -362,27 +361,27 @@ func evaluateId(schema *Schema, compiler *Compiler, data interface{}) []*Evaluat
 		return append(errors, NewEvaluationError("@id", "id_without_schema", "Referenced object does not contains @schema"))
 	}
 
-	for targetObjectSchema := range schema.XTFAcceptedObjects {
-		if withSchemaInstance.Schema == targetObjectSchema {
-			// full match including a possible version
-			return nil
-		}
-		if strings.HasPrefix(withSchemaInstance.Schema, targetObjectSchema) {
-			// match without version
-			return nil
-		}
-	}
+	//for targetObjectSchema := range schema.XTFAcceptedObjects {
+	//	if withSchemaInstance.Schema == targetObjectSchema {
+	//		// full match including a possible version
+	//		return nil
+	//	}
+	//	if strings.HasPrefix(withSchemaInstance.Schema, targetObjectSchema) {
+	//		// match without version
+	//		return nil
+	//	}
+	//}
 
 	parsedType, err := urlParse(withSchemaInstance.Schema)
 	if err != nil {
 		return append(errors, NewEvaluationError("@id", "id_invalid_schema", "Referenced object does not contains valid @schema"))
 	}
 
-	for targetObjectSchema := range schema.XTFAcceptedObjects {
-		if strings.HasPrefix(parsedType.Path, targetObjectSchema) {
-			return nil
-		}
-	}
+	//for targetObjectSchema := range schema.XTFAcceptedObjects {
+	//	if strings.HasPrefix(parsedType.Path, targetObjectSchema) {
+	//		return nil
+	//	}
+	//}
 
 	return append(errors, NewEvaluationError("@id", "id_forbidden_schema", "Referenced object does not contains permitted @schema"))
 }
