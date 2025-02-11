@@ -10,7 +10,7 @@ import (
 
 func main() {
 	objectSchema := `
-{
+{"allOf": [{
   "properties": {
     "@id": {
       "type": "string"
@@ -105,7 +105,10 @@ func main() {
     "@context-connections"
   ],
   "unevaluatedProperties": false
-}
+},
+{
+  "$ref": "json-ir://local@madesst/unit/finance/INDIVIDUAL_ENTITY"
+}]}
 `
 
 	compiler := jsonschema.NewCompiler()

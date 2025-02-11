@@ -291,7 +291,7 @@ func (s *Schema) evaluate(instance interface{}, dynamicScope *DynamicScope) (*Ev
 			}
 		}
 
-		if len(s.ObjectSchemas) > 0 {
+		if len(s.XTFAcceptedObjects) > 0 {
 			idErrors := evaluateId(s, s.compiler, instance)
 			for _, idError := range idErrors {
 				result.AddError(idError)
@@ -362,7 +362,7 @@ func evaluateId(schema *Schema, compiler *Compiler, data interface{}) []*Evaluat
 		return append(errors, NewEvaluationError("@id", "id_without_schema", "Referenced object does not contains @schema"))
 	}
 
-	for targetObjectSchema := range schema.ObjectSchemas {
+	for targetObjectSchema := range schema.XTFAcceptedObjects {
 		if withSchemaInstance.Schema == targetObjectSchema {
 			// full match including a possible version
 			return nil
@@ -378,7 +378,7 @@ func evaluateId(schema *Schema, compiler *Compiler, data interface{}) []*Evaluat
 		return append(errors, NewEvaluationError("@id", "id_invalid_schema", "Referenced object does not contains valid @schema"))
 	}
 
-	for targetObjectSchema := range schema.ObjectSchemas {
+	for targetObjectSchema := range schema.XTFAcceptedObjects {
 		if strings.HasPrefix(parsedType.Path, targetObjectSchema) {
 			return nil
 		}

@@ -107,7 +107,8 @@ type Schema struct {
 	WriteOnly   *bool         `json:"writeOnly,omitempty"`   // Indicates that the property is write-only.
 	Examples    []interface{} `json:"examples,omitempty"`    // Examples of the instance data that validates against this schema.
 
-	ObjectSchemas map[string]interface{} `json:"x-tf-object-ref,omitempty"`
+	XTFAcceptedObjects map[string]interface{} `json:"x-tf-object-ref,omitempty"`
+	XTFSubstituteValue string                 `json:"x-tf-substitute-value,omitempty"`
 }
 
 // newSchema parses JSON schema data and returns a Schema object.
