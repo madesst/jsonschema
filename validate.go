@@ -4,6 +4,7 @@ import (
 	"dario.cat/mergo"
 	"encoding/json"
 	"io"
+	"strings"
 )
 
 // Evaluate checks if the given instance conforms to the schema.
@@ -40,33 +41,34 @@ func (s *Schema) evaluate(instance interface{}, dynamicScope *DynamicScope) (*Ev
 		}
 
 		if len(s.Ref) > 0 {
-			parsedRef, _ := urlParse(s.Ref)
-			if parsedRef.Scheme == "" {
+			//parsedRef, _ := urlParse(s.Ref)
+			if strings.HasPrefix(s.Ref, "tf://") {
 				s.ResolvedRef = nil
 				var err error
 
 				if getDataType(instance) != "object" {
-					panic("instance is not an object")
-					//result.AddError(
-					//	NewEvaluationError("@schema", "type_not_found", "Cant find the reference type schema"),
-					//)
-				}
-				value, ok := instance.(map[string]interface{})
-				if !ok {
-					panic("instance is not an object")
-				}
-				if _, ok := value["@schema"]; !ok {
-					panic("@schema not found")
-					//result.AddError(
-					//	NewEvaluationError("@schema", "type_not_found", "Cant find the reference type schema"),
-					//)
-				}
-
-				s.ResolvedRef, err = s.resolveRef(value["@schema"].(string))
-				if err != nil {
+					//panic("instance is not an object")
 					result.AddError(
-						NewEvaluationError("@schema", "schema_cant_reach", "Cant reach the reference @schema"),
+						NewEvaluationError("@schema", "type_not_found", "Cant find the reference type schema"),
 					)
+				} else {
+					value, ok := instance.(map[string]interface{})
+					if !ok {
+						result.AddError(
+							NewEvaluationError("@schema", "type_not_found", "Cant find the reference type schema"),
+						)
+					} else if _, ok := value["@schema"]; !ok {
+						result.AddError(
+							NewEvaluationError("@schema", "type_not_found", "Cant find the reference type schema"),
+						)
+					} else {
+						s.ResolvedRef, err = s.resolveRef(value["@schema"].(string))
+						if err != nil {
+							result.AddError(
+								NewEvaluationError("@schema", "schema_cant_reach", "Cant reach the reference @schema"),
+							)
+						}
+					}
 				}
 			}
 		}
