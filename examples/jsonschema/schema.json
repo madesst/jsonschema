@@ -1,0 +1,2892 @@
+{
+  "$defs": {
+    "produceObjects": {
+      "const": {
+        "onCreate": [
+          {
+            "@condition": "expr://keys($env['@producer']['@meta']['@relations']) != []",
+            "@data": {
+              "added": "expr://flatten(map(keys($env['@producer']['@meta']['@relations']), {let relationKind = #; let uris = keys($env['@producer']['@meta']['@relations'][relationKind]); map(uris, dict(relationKind, dict('_object', #, '_relationKind', relationKind)))}))",
+              "removed": [],
+              "unit": {
+                "_object": "expr://$env['@producer']['@id']",
+                "_relationKind": "unit"
+              }
+            },
+            "@schema": "json-ir://public@:cluster_id:/types/general/event/unit_relations_changed"
+          },
+          {
+            "@condition": "expr://$env['@producer']['@data']['forms'] != nil \u0026\u0026 $env['@producer']['@data']['forms']['INDIVIDUAL_ENTITY__CONTACT_DETAILS'] != nil",
+            "@data": {
+              "index_name": "INDIVIDUAL_ENTITY__CONTACT_DETAILS",
+              "underlying_object": {
+                "_object": "expr://$env['@producer']['@id']",
+                "_relationKind": "underlying_object"
+              }
+            },
+            "@meta": {
+              "@status": "PENDING"
+            },
+            "@schema": "json-ir://public@:cluster_id:/types/general/trigger/update_search_index"
+          }
+        ],
+        "onUpdate": [
+          {
+            "@condition": "expr://sort(keys($env['@producer']['@meta']['@relations'])) != sort(keys($env['@producer']['@old']['@meta']['@relations'])) || any(keys($env['@producer']['@meta']['@relations']), sort(keys($env['@producer']['@meta']['@relations'][#])) != sort(keys($env['@producer']['@old']['@meta']['@relations'][#] ?? {})))",
+            "@data": {
+              "added": "expr://flatten(map(keys($env['@producer']['@meta']['@relations']), {let relationKind = #; let currentKeys = keys($env['@producer']['@meta']['@relations'][relationKind]); let oldKeys = keys($env['@producer']['@old']['@meta']['@relations'][relationKind] ?? {}); map(filter(currentKeys, !(# in oldKeys)), dict(relationKind, dict('_object', #, '_relationKind', relationKind)))}))",
+              "removed": "expr://flatten(map(keys($env['@producer']['@old']['@meta']['@relations']), {let relationKind = #; let oldKeys = keys($env['@producer']['@old']['@meta']['@relations'][relationKind]); let currentKeys = keys($env['@producer']['@meta']['@relations'][relationKind] ?? {}); map(filter(oldKeys, !(# in currentKeys)), dict(relationKind, dict('_object', #, '_relationKind', relationKind)))}))",
+              "unit": {
+                "_object": "expr://$env['@producer']['@id']",
+                "_relationKind": "unit"
+              }
+            },
+            "@schema": "json-ir://public@:cluster_id:/types/general/event/unit_relations_changed"
+          },
+          {
+            "@condition": "expr://has_changed('^@meta\\.state')",
+            "@data": {
+              "new_state": {
+                "phase": "expr://$env['@producer']['@meta']['state']['phase']",
+                "value": "expr://$env['@producer']['@meta']['state']['value']"
+              },
+              "old_state": {
+                "phase": "expr://($env['@producer']['@old']['@meta']['state'] ?? {})['phase'] ?? nil",
+                "value": "expr://($env['@producer']['@old']['@meta']['state'] ?? {})['value'] ?? nil"
+              },
+              "unit": {
+                "_object": "expr://$env['@producer']['@id']",
+                "_relationKind": "unit"
+              }
+            },
+            "@schema": "json-ir://public@:cluster_id:/types/general/event/unit_state_changed"
+          },
+          {
+            "@condition": "expr://has_changed('^@labels\\.name')",
+            "@data": {
+              "name": "expr://$env['@producer']['@labels']['name']",
+              "old_name": "expr://($env['@producer']['@old']['@labels'] ?? {})['name'] ?? nil",
+              "unit": {
+                "_object": "expr://$env['@producer']['@id']",
+                "_relationKind": "unit"
+              }
+            },
+            "@schema": "json-ir://public@:cluster_id:/types/general/event/unit_name_changed"
+          },
+          {
+            "@condition": "expr://has_changed('^@data\\.forms\\.INDIVIDUAL_ENTITY__CONTACT_DETAILS') || (($env['@producer']['@data']['forms'] ?? {})['INDIVIDUAL_ENTITY__CONTACT_DETAILS'] != nil \u0026\u0026 (($env['@producer']['@old']['@data'] ?? {})['forms'] ?? {})['INDIVIDUAL_ENTITY__CONTACT_DETAILS'] == nil)",
+            "@data": {
+              "index_name": "INDIVIDUAL_ENTITY__CONTACT_DETAILS",
+              "underlying_object": {
+                "_object": "expr://$env['@producer']['@id']",
+                "_relationKind": "underlying_object"
+              }
+            },
+            "@meta": {
+              "@status": "PENDING"
+            },
+            "@schema": "json-ir://public@:cluster_id:/types/general/trigger/update_search_index"
+          }
+        ]
+      }
+    }
+  },
+  "properties": {
+    "@id": {
+      "description": "System-generated identifier with uuid as object name",
+      "format": "iri",
+      "readOnly": true,
+      "type": "string"
+    },
+    "@aliases": {
+      "additionalProperties": false,
+      "description": "User-defined key-value pairs for referencing. Keys Must be lowercase, slug-like strings (letters, digits, dots, dashes, underscores), not starting with '@'. Values - any strings.",
+      "maxProperties": 10,
+      "patternProperties": {
+        "^[a-zA-Z0-9][a-zA-Z0-9._ \\/-]{2,254}$": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "@schema": {
+      "format": "iri",
+      "type": "string"
+    },
+    "@archetype": {
+      "const": "unit",
+      "maxLength": 25,
+      "minLength": 2,
+      "type": "string"
+    },
+    "@kind": {
+      "const": "INDIVIDUAL_ENTITY"
+    },
+    "@meta": {
+      "properties": {
+        "@author": {
+          "properties": {
+            "@id": {
+              "type": "string"
+            },
+            "@kind": {
+              "enum": [
+                "USER",
+                "API",
+                "SYSTEM"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "@kind",
+            "@id"
+          ],
+          "type": "object",
+          "unevaluatedProperties": false
+        },
+        "@contentUpdatedAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "@createdAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "@etag": {
+          "type": "string"
+        },
+        "@indexes": {
+          "type": "object"
+        },
+        "@isDataValid": {
+          "type": "boolean"
+        },
+        "@relations": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "additionalProperties": false,
+              "properties": {
+                "@attributes": {
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "propertyNames": {
+              "description": "System-generated identifier with uuid as object name",
+              "format": "iri",
+              "readOnly": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "type": "object"
+        },
+        "@source": {
+          "properties": {
+            "@id": {
+              "description": "System-generated identifier with uuid as object name",
+              "format": "iri",
+              "readOnly": true,
+              "type": "string"
+            },
+            "@updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "@version": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id",
+            "@version",
+            "@updatedAt"
+          ],
+          "type": "object",
+          "unevaluatedProperties": false
+        },
+        "@updatedAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "@updater": {
+          "properties": {
+            "@id": {
+              "type": "string"
+            },
+            "@kind": {
+              "enum": [
+                "USER",
+                "API",
+                "SYSTEM"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "@kind",
+            "@id"
+          ],
+          "type": "object",
+          "unevaluatedProperties": false
+        },
+        "@version": {
+          "type": "string"
+        },
+        "@with": {
+          "additionalProperties": {
+            "items": {
+              "description": "System-generated identifier with uuid as object name",
+              "format": "iri",
+              "readOnly": true,
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "documentation": "Legacy field, @relations is preferred for new designs",
+          "type": "object"
+        },
+        "state": {
+          "properties": {
+            "author": {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                },
+                "@kind": {
+                  "enum": [
+                    "USER",
+                    "API",
+                    "SYSTEM"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@kind",
+                "@id"
+              ],
+              "type": "object",
+              "unevaluatedProperties": false
+            },
+            "changed_at": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "phase": {
+              "enum": [
+                "PROSPECT",
+                "PROCESSING",
+                "COMPLETED",
+                "ARCHIVED"
+              ],
+              "type": "string"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "phase",
+            "value",
+            "changed_at",
+            "author"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "@createdAt",
+        "@updatedAt",
+        "@version",
+        "@etag",
+        "@author",
+        "@updater",
+        "@isDataValid"
+      ],
+      "type": "object"
+    },
+    "@labels": {
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "@data": {
+      "properties": {
+        "connections": {
+          "properties": {},
+          "type": "object"
+        },
+        "context_connections": {
+          "properties": {},
+          "type": "object"
+        },
+        "context_forms": {
+          "properties": {
+            "INDIVIDUAL_ENTITY__EMPLOYMENT_DETAILS": {
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "primary_occupation": {
+                        "enum": [
+                          "SELF_EMPLOYED",
+                          "HIRED_EMPLOYEE"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "primary_occupation"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "company_industry": {
+                        "enum": [
+                          "ACCOMMODATION",
+                          "AUXILIARY_FINANCIAL_SERVICES",
+                          "ADVERTISING_AND_MARKET_RESEARCH",
+                          "EXTRATERRITORIAL_ORGANIZATIONS",
+                          "HEAD_OFFICES",
+                          "HOUSEHOLDS_EMPLOYERS",
+                          "MEMBERSHIP_ORGANIZATIONS",
+                          "ADULT_CONTENT",
+                          "AGRICULTURE",
+                          "AIR_TRANSPORT",
+                          "ANONYMOUS_ACCOUNTS",
+                          "ANTIQUES_AND_TRADE",
+                          "ARCHITECTURAL_ENGINEERING",
+                          "ARTS_CREATION",
+                          "ATOMIC_POWER",
+                          "BEAUTY",
+                          "PHARMACEUTICAL_GOODS",
+                          "METALS_MINING_AND_TRADING",
+                          "CIVIL_ENGINEERING",
+                          "COMPUTER_PROGRAMMING",
+                          "COMPUTING_INFRASTRUCTURE",
+                          "CONSTRUCTION_BUILDINGS",
+                          "CORPORATE_BANKING",
+                          "CORRESPONDENT_BANKING",
+                          "CROP_ANIMAL_PRODUCTION",
+                          "DIAMOND_MINING_AND_TRADING",
+                          "DRUGS",
+                          "EDUCATION",
+                          "UTILITIES_SUPPLY",
+                          "EMPLOYMENT_ACTIVITIES",
+                          "FISHING_AQUACULTURE",
+                          "FOOD_AND_BEVERAGE",
+                          "FORESTRY_LOGGING",
+                          "GAMBLING_AND_BETTING",
+                          "HEALTH_ACTIVITIES",
+                          "ILLEGAL_ACTIVITIES",
+                          "INSURANCE_REINSURANCE",
+                          "INVESTIGATION_SECURITY",
+                          "LAND_TRANSPORT",
+                          "BEARER_SHARES",
+                          "LEGAL_AND_ACCOUNTING",
+                          "CULTURAL_ACTIVITIES",
+                          "AMMUNITION_MANUFACTURING",
+                          "BASIC_METALS_MANUFACTURING",
+                          "BEVERAGE_MANUFACTURING",
+                          "CHEMICAL_MANUFACTURING",
+                          "COKE_REFINED_PETROLEUM",
+                          "COMPUTER_ELECTRONIC_PRODUCTS",
+                          "ELECTRICAL_EQUIPMENT_MANUFACTURING",
+                          "FABRICATED_METAL_PRODUCTS",
+                          "FOOD_PRODUCTS_MANUFACTURING",
+                          "FURNITURE_MANUFACTURING",
+                          "LEATHER_PRODUCTS_MANUFACTURING",
+                          "MACHINERY_EQUIPMENT_MANUFACTURING",
+                          "MOTOR_VEHICLES_MANUFACTURING",
+                          "NON_METALLIC_MINERAL_PRODUCTS",
+                          "OTHER_TRANSPORT_EQUIPMENT",
+                          "PAPER_PAPER_PRODUCTS_MANUFACTURING",
+                          "RUBBER_PLASTIC_PRODUCTS_MANUFACTURING",
+                          "TEXTILES_MANUFACTURING",
+                          "TOBACCO_PRODUCTS_MANUFACTURING",
+                          "WEARING_APPAREL_MANUFACTURING",
+                          "WOOD_PRODUCTS_MANUFACTURING",
+                          "COAL_MINING",
+                          "METAL_ORE_MINING",
+                          "MINING_SUPPORT",
+                          "MVTS_MSB",
+                          "MOTION_PICTURE_PRODUCTION",
+                          "NON_PROFIT_ORGANIZATIONS",
+                          "OFFICE_ADMINISTRATIVE_SUPPORT",
+                          "OIL_AND_GAS",
+                          "OTHER",
+                          "OTHER_MANUFACTURING",
+                          "OTHER_MINING",
+                          "OTHER_PROFESSIONAL_SERVICES",
+                          "OTHER_PROFESSIONAL_SCIENTIFIC",
+                          "PERSONAL_SERVICE_ACTIVITIES",
+                          "POSTAL_COURIER_ACTIVITIES",
+                          "PRECIOUS_MINING_AND_TRADING",
+                          "PRINTING_REPRODUCTION_MEDIA",
+                          "PRIVATE_BANKING",
+                          "PROFESSIONAL_SPORTS",
+                          "CONTENT_DISTRIBUTION",
+                          "PUBLIC_ADMINISTRATION",
+                          "PUBLISHING",
+                          "REAL_ESTATE",
+                          "CRYPTO_ASSETS",
+                          "PAYMENT_SERVICES",
+                          "WASTE_MANAGEMENT",
+                          "RENTAL_LEASING_ACTIVITIES",
+                          "REPAIR_MAINTENANCE",
+                          "MACHINERY_EQUIPMENT_REPAIR",
+                          "RESIDENTIAL_CARE_ACTIVITIES",
+                          "RETAIL_BROKERS",
+                          "RETAIL_BANKING",
+                          "RETAIL",
+                          "RESEARCH_DEVELOPMENT",
+                          "SERVICES_BUILDINGS_LANDSCAPE",
+                          "SEWERAGE",
+                          "SHELL_BANKS",
+                          "SHELL_STRUCTURES",
+                          "SOCIAL_WORK",
+                          "SPECIALIZED_CONSTRUCTION",
+                          "SPORTS_AND_RECREATION",
+                          "TELECOMMUNICATION",
+                          "TRAVEL_AGENCY",
+                          "HOUSEHOLD_ACTIVITIES",
+                          "URANIUM_MINING_AND_PROCESSING",
+                          "VETERINARY_ACTIVITIES",
+                          "WAREHOUSING_STORAGE",
+                          "WASTE_COLLECTION_DISPOSAL",
+                          "WATER_TREATMENT_SUPPLY",
+                          "WATER_TRANSPORT",
+                          "WHOLESALE_TRADE"
+                        ],
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "company_name": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "company_website": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "position": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "position",
+                      "company_name",
+                      "company_website",
+                      "company_industry"
+                    ]
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "primary_occupation": {
+                        "const": "STUDENT"
+                      }
+                    },
+                    "required": [
+                      "primary_occupation"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "institution_name": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "institution_name"
+                    ]
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "primary_occupation": {
+                        "enum": [
+                          "RETIRED",
+                          "UNEMPLOYED"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "primary_occupation"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "last_employer_name": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "last_employer_name"
+                    ]
+                  }
+                }
+              ],
+              "properties": {
+                "_object": {
+                  "description": "System-generated identifier with uuid as object name",
+                  "format": "iri",
+                  "readOnly": true,
+                  "type": "string",
+                  "x-tf-accepted-objects": [
+                    {
+                      "@archetype": "form",
+                      "@kind": "INDIVIDUAL_ENTITY__EMPLOYMENT_DETAILS"
+                    }
+                  ]
+                },
+                "_relationKind": {
+                  "const": "INDIVIDUAL_ENTITY__EMPLOYMENT_DETAILS"
+                },
+                "company_industry": {
+                  "enum": [
+                    "ACCOMMODATION",
+                    "AUXILIARY_FINANCIAL_SERVICES",
+                    "ADVERTISING_AND_MARKET_RESEARCH",
+                    "EXTRATERRITORIAL_ORGANIZATIONS",
+                    "HEAD_OFFICES",
+                    "HOUSEHOLDS_EMPLOYERS",
+                    "MEMBERSHIP_ORGANIZATIONS",
+                    "ADULT_CONTENT",
+                    "AGRICULTURE",
+                    "AIR_TRANSPORT",
+                    "ANONYMOUS_ACCOUNTS",
+                    "ANTIQUES_AND_TRADE",
+                    "ARCHITECTURAL_ENGINEERING",
+                    "ARTS_CREATION",
+                    "ATOMIC_POWER",
+                    "BEAUTY",
+                    "PHARMACEUTICAL_GOODS",
+                    "METALS_MINING_AND_TRADING",
+                    "CIVIL_ENGINEERING",
+                    "COMPUTER_PROGRAMMING",
+                    "COMPUTING_INFRASTRUCTURE",
+                    "CONSTRUCTION_BUILDINGS",
+                    "CORPORATE_BANKING",
+                    "CORRESPONDENT_BANKING",
+                    "CROP_ANIMAL_PRODUCTION",
+                    "DIAMOND_MINING_AND_TRADING",
+                    "DRUGS",
+                    "EDUCATION",
+                    "UTILITIES_SUPPLY",
+                    "EMPLOYMENT_ACTIVITIES",
+                    "FISHING_AQUACULTURE",
+                    "FOOD_AND_BEVERAGE",
+                    "FORESTRY_LOGGING",
+                    "GAMBLING_AND_BETTING",
+                    "HEALTH_ACTIVITIES",
+                    "ILLEGAL_ACTIVITIES",
+                    "INSURANCE_REINSURANCE",
+                    "INVESTIGATION_SECURITY",
+                    "LAND_TRANSPORT",
+                    "BEARER_SHARES",
+                    "LEGAL_AND_ACCOUNTING",
+                    "CULTURAL_ACTIVITIES",
+                    "AMMUNITION_MANUFACTURING",
+                    "BASIC_METALS_MANUFACTURING",
+                    "BEVERAGE_MANUFACTURING",
+                    "CHEMICAL_MANUFACTURING",
+                    "COKE_REFINED_PETROLEUM",
+                    "COMPUTER_ELECTRONIC_PRODUCTS",
+                    "ELECTRICAL_EQUIPMENT_MANUFACTURING",
+                    "FABRICATED_METAL_PRODUCTS",
+                    "FOOD_PRODUCTS_MANUFACTURING",
+                    "FURNITURE_MANUFACTURING",
+                    "LEATHER_PRODUCTS_MANUFACTURING",
+                    "MACHINERY_EQUIPMENT_MANUFACTURING",
+                    "MOTOR_VEHICLES_MANUFACTURING",
+                    "NON_METALLIC_MINERAL_PRODUCTS",
+                    "OTHER_TRANSPORT_EQUIPMENT",
+                    "PAPER_PAPER_PRODUCTS_MANUFACTURING",
+                    "RUBBER_PLASTIC_PRODUCTS_MANUFACTURING",
+                    "TEXTILES_MANUFACTURING",
+                    "TOBACCO_PRODUCTS_MANUFACTURING",
+                    "WEARING_APPAREL_MANUFACTURING",
+                    "WOOD_PRODUCTS_MANUFACTURING",
+                    "COAL_MINING",
+                    "METAL_ORE_MINING",
+                    "MINING_SUPPORT",
+                    "MVTS_MSB",
+                    "MOTION_PICTURE_PRODUCTION",
+                    "NON_PROFIT_ORGANIZATIONS",
+                    "OFFICE_ADMINISTRATIVE_SUPPORT",
+                    "OIL_AND_GAS",
+                    "OTHER",
+                    "OTHER_MANUFACTURING",
+                    "OTHER_MINING",
+                    "OTHER_PROFESSIONAL_SERVICES",
+                    "OTHER_PROFESSIONAL_SCIENTIFIC",
+                    "PERSONAL_SERVICE_ACTIVITIES",
+                    "POSTAL_COURIER_ACTIVITIES",
+                    "PRECIOUS_MINING_AND_TRADING",
+                    "PRINTING_REPRODUCTION_MEDIA",
+                    "PRIVATE_BANKING",
+                    "PROFESSIONAL_SPORTS",
+                    "CONTENT_DISTRIBUTION",
+                    "PUBLIC_ADMINISTRATION",
+                    "PUBLISHING",
+                    "REAL_ESTATE",
+                    "CRYPTO_ASSETS",
+                    "PAYMENT_SERVICES",
+                    "WASTE_MANAGEMENT",
+                    "RENTAL_LEASING_ACTIVITIES",
+                    "REPAIR_MAINTENANCE",
+                    "MACHINERY_EQUIPMENT_REPAIR",
+                    "RESIDENTIAL_CARE_ACTIVITIES",
+                    "RETAIL_BROKERS",
+                    "RETAIL_BANKING",
+                    "RETAIL",
+                    "RESEARCH_DEVELOPMENT",
+                    "SERVICES_BUILDINGS_LANDSCAPE",
+                    "SEWERAGE",
+                    "SHELL_BANKS",
+                    "SHELL_STRUCTURES",
+                    "SOCIAL_WORK",
+                    "SPECIALIZED_CONSTRUCTION",
+                    "SPORTS_AND_RECREATION",
+                    "TELECOMMUNICATION",
+                    "TRAVEL_AGENCY",
+                    "HOUSEHOLD_ACTIVITIES",
+                    "URANIUM_MINING_AND_PROCESSING",
+                    "VETERINARY_ACTIVITIES",
+                    "WAREHOUSING_STORAGE",
+                    "WASTE_COLLECTION_DISPOSAL",
+                    "WATER_TREATMENT_SUPPLY",
+                    "WATER_TRANSPORT",
+                    "WHOLESALE_TRADE"
+                  ],
+                  "type": "string"
+                },
+                "company_name": {
+                  "type": "string"
+                },
+                "company_website": {
+                  "type": "string"
+                },
+                "institution_name": {
+                  "type": "string"
+                },
+                "last_employer_name": {
+                  "type": "string"
+                },
+                "position": {
+                  "type": "string"
+                },
+                "primary_occupation": {
+                  "enum": [
+                    "SELF_EMPLOYED",
+                    "HIRED_EMPLOYEE",
+                    "RETIRED",
+                    "STUDENT",
+                    "UNEMPLOYED"
+                  ],
+                  "type": "string"
+                },
+                "supporting_documents": {
+                  "items": {
+                    "properties": {
+                      "document_type": {
+                        "enum": [
+                          "PROOF_OF_EMPLOYMENT",
+                          "PROOF_OF_STUDENT_STATUS",
+                          "PROOF_OF_RETIREMENT",
+                          "OTHER"
+                        ],
+                        "type": "string"
+                      },
+                      "files": {
+                        "items": {
+                          "properties": {
+                            "_object": {
+                              "description": "System-generated identifier with uuid as object name",
+                              "format": "iri",
+                              "readOnly": true,
+                              "type": "string",
+                              "x-tf-accepted-objects": [
+                                {
+                                  "@archetype": "file",
+                                  "@kind": "form_attachment"
+                                }
+                              ]
+                            },
+                            "_relationKind": {
+                              "const": "form_attachment"
+                            }
+                          },
+                          "required": [
+                            "_object",
+                            "_relationKind"
+                          ],
+                          "type": "object",
+                          "unevaluatedProperties": false
+                        },
+                        "type": "array"
+                      },
+                      "is_no_document": {
+                        "type": "boolean"
+                      },
+                      "reason": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object",
+                    "unevaluatedProperties": false
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "primary_occupation"
+              ],
+              "type": "object"
+            },
+            "INDIVIDUAL_ENTITY__TAX_INFO": {
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "crs_tax_form": {
+                        "required": [
+                          "tax_residencies"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "crs_tax_form"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "crs_tax_form": {
+                        "properties": {
+                          "tax_residencies": {
+                            "items": {
+                              "allOf": [
+                                {
+                                  "else": {
+                                    "required": [
+                                      "no_tin_reason"
+                                    ]
+                                  },
+                                  "if": {
+                                    "properties": {
+                                      "is_tin": {
+                                        "const": true
+                                      }
+                                    },
+                                    "required": [
+                                      "is_tin"
+                                    ]
+                                  },
+                                  "then": {
+                                    "properties": {
+                                      "tin": {
+                                        "minLength": 1
+                                      }
+                                    },
+                                    "required": [
+                                      "tin"
+                                    ]
+                                  }
+                                },
+                                {
+                                  "if": {
+                                    "properties": {
+                                      "no_tin_reason": {
+                                        "const": "UNABLE_TO_OBTAIN"
+                                      }
+                                    },
+                                    "required": [
+                                      "no_tin_reason"
+                                    ]
+                                  },
+                                  "then": {
+                                    "properties": {
+                                      "no_tin_explanation": {
+                                        "minLength": 1
+                                      }
+                                    },
+                                    "required": [
+                                      "no_tin_explanation"
+                                    ]
+                                  }
+                                }
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "properties": {
+                "_object": {
+                  "description": "System-generated identifier with uuid as object name",
+                  "format": "iri",
+                  "readOnly": true,
+                  "type": "string",
+                  "x-tf-accepted-objects": [
+                    {
+                      "@archetype": "form",
+                      "@kind": "INDIVIDUAL_ENTITY__TAX_INFO"
+                    }
+                  ]
+                },
+                "_relationKind": {
+                  "const": "INDIVIDUAL_ENTITY__TAX_INFO"
+                },
+                "crs_tax_form": {
+                  "properties": {
+                    "info_crs": {
+                      "type": "null"
+                    },
+                    "tax_residencies": {
+                      "items": {
+                        "properties": {
+                          "country": {
+                            "enum": [
+                              "AF",
+                              "AX",
+                              "AL",
+                              "DZ",
+                              "AD",
+                              "AO",
+                              "AI",
+                              "AQ",
+                              "AG",
+                              "AR",
+                              "AM",
+                              "AW",
+                              "AU",
+                              "AT",
+                              "AZ",
+                              "BS",
+                              "BH",
+                              "BD",
+                              "BB",
+                              "BY",
+                              "BE",
+                              "BZ",
+                              "BJ",
+                              "BM",
+                              "BT",
+                              "BO",
+                              "BQ",
+                              "BA",
+                              "BW",
+                              "BV",
+                              "IO",
+                              "BR",
+                              "VG",
+                              "BN",
+                              "BG",
+                              "BF",
+                              "BI",
+                              "KH",
+                              "CM",
+                              "CA",
+                              "CV",
+                              "KY",
+                              "CF",
+                              "TD",
+                              "CL",
+                              "CN",
+                              "CX",
+                              "CC",
+                              "CO",
+                              "KM",
+                              "CG",
+                              "CK",
+                              "CR",
+                              "HR",
+                              "CU",
+                              "CW",
+                              "CY",
+                              "CZ",
+                              "CD",
+                              "DK",
+                              "DJ",
+                              "DM",
+                              "DO",
+                              "TL",
+                              "EC",
+                              "EG",
+                              "SV",
+                              "GQ",
+                              "ER",
+                              "EE",
+                              "ET",
+                              "FO",
+                              "FK",
+                              "FJ",
+                              "FI",
+                              "FR",
+                              "GF",
+                              "PF",
+                              "TF",
+                              "GA",
+                              "GM",
+                              "GE",
+                              "DE",
+                              "GH",
+                              "GI",
+                              "GR",
+                              "GL",
+                              "GD",
+                              "GP",
+                              "GU",
+                              "GT",
+                              "GG",
+                              "GN",
+                              "GW",
+                              "GY",
+                              "HT",
+                              "HM",
+                              "HN",
+                              "HK",
+                              "HU",
+                              "IS",
+                              "IN",
+                              "ID",
+                              "IR",
+                              "IQ",
+                              "IE",
+                              "IM",
+                              "IL",
+                              "IT",
+                              "CI",
+                              "JM",
+                              "JP",
+                              "JE",
+                              "JO",
+                              "KZ",
+                              "KE",
+                              "KI",
+                              "KW",
+                              "KG",
+                              "MY-L",
+                              "LA",
+                              "LV",
+                              "LB",
+                              "LS",
+                              "LR",
+                              "LY",
+                              "LI",
+                              "LT",
+                              "LU",
+                              "MO",
+                              "MK",
+                              "MG",
+                              "MW",
+                              "MY",
+                              "MV",
+                              "ML",
+                              "MT",
+                              "MH",
+                              "MQ",
+                              "MR",
+                              "MU",
+                              "YT",
+                              "MX",
+                              "FM",
+                              "MD",
+                              "MC",
+                              "MN",
+                              "ME",
+                              "MS",
+                              "MA",
+                              "MZ",
+                              "MM",
+                              "NA",
+                              "NR",
+                              "NP",
+                              "AN",
+                              "NL",
+                              "NC",
+                              "NZ",
+                              "NI",
+                              "NE",
+                              "NG",
+                              "NU",
+                              "NF",
+                              "KP",
+                              "MP",
+                              "NO",
+                              "OM",
+                              "PK",
+                              "PW",
+                              "PS",
+                              "PA",
+                              "PG",
+                              "PY",
+                              "PE",
+                              "PH",
+                              "PN",
+                              "PL",
+                              "PT",
+                              "PR",
+                              "QA",
+                              "RE",
+                              "RO",
+                              "RU",
+                              "RW",
+                              "PM",
+                              "AS",
+                              "WS",
+                              "SM",
+                              "ST",
+                              "SA",
+                              "SN",
+                              "RS",
+                              "SC",
+                              "SL",
+                              "SG",
+                              "SX",
+                              "SK",
+                              "SI",
+                              "SB",
+                              "SO",
+                              "ZA",
+                              "GS",
+                              "KR",
+                              "SS",
+                              "ES",
+                              "LK",
+                              "BL",
+                              "MF",
+                              "SH",
+                              "KN",
+                              "LC",
+                              "VC",
+                              "SD",
+                              "SR",
+                              "SJ",
+                              "SZ",
+                              "SE",
+                              "CH",
+                              "SY",
+                              "TW",
+                              "TJ",
+                              "TZ",
+                              "TH",
+                              "TG",
+                              "TK",
+                              "TO",
+                              "TT",
+                              "TN",
+                              "TR",
+                              "TM",
+                              "TC",
+                              "TV",
+                              "UM",
+                              "AE",
+                              "UG",
+                              "UA",
+                              "GB",
+                              "US",
+                              "UY",
+                              "UZ",
+                              "VU",
+                              "VA",
+                              "VE",
+                              "VN",
+                              "VI",
+                              "WF",
+                              "EH",
+                              "YE",
+                              "ZM",
+                              "ZW"
+                            ],
+                            "type": "string"
+                          },
+                          "is_tin": {
+                            "type": "boolean"
+                          },
+                          "no_tin_explanation": {
+                            "type": "string"
+                          },
+                          "no_tin_reason": {
+                            "enum": [
+                              "DOES_NOT_ISSUE",
+                              "UNABLE_TO_OBTAIN",
+                              "DO_NOT_REQUIRE_TO_DISCLOSE"
+                            ],
+                            "type": "string"
+                          },
+                          "tin": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "country",
+                          "is_tin"
+                        ],
+                        "type": "object",
+                        "unevaluatedProperties": false
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "tax_residencies"
+                  ],
+                  "type": "object",
+                  "unevaluatedProperties": false
+                },
+                "us_tax_status": {
+                  "properties": {
+                    "document": {
+                      "allOf": [
+                        {
+                          "else": {
+                            "properties": {
+                              "reason": {
+                                "minLength": 1
+                              }
+                            },
+                            "required": [
+                              "reason"
+                            ]
+                          },
+                          "if": {
+                            "properties": {
+                              "is_no_document": {
+                                "const": false
+                              }
+                            },
+                            "required": [
+                              "is_no_document"
+                            ]
+                          },
+                          "then": {
+                            "properties": {
+                              "files": {
+                                "minItems": 1
+                              }
+                            },
+                            "required": [
+                              "files"
+                            ]
+                          }
+                        }
+                      ],
+                      "properties": {
+                        "files": {
+                          "items": {
+                            "properties": {
+                              "_object": {
+                                "description": "System-generated identifier with uuid as object name",
+                                "format": "iri",
+                                "readOnly": true,
+                                "type": "string",
+                                "x-tf-accepted-objects": [
+                                  {
+                                    "@archetype": "file",
+                                    "@kind": "form_attachment"
+                                  }
+                                ]
+                              },
+                              "_relationKind": {
+                                "const": "form_attachment"
+                              }
+                            },
+                            "required": [
+                              "_object",
+                              "_relationKind"
+                            ],
+                            "type": "object",
+                            "unevaluatedProperties": false
+                          },
+                          "type": "array"
+                        },
+                        "is_no_document": {
+                          "type": "boolean"
+                        },
+                        "reason": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object",
+                      "unevaluatedProperties": false
+                    },
+                    "guide": {
+                      "type": "null"
+                    },
+                    "link_w8": {
+                      "type": "null"
+                    },
+                    "link_w9": {
+                      "type": "null"
+                    },
+                    "not_us_tax_resident": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "not_us_tax_resident",
+                    "document"
+                  ],
+                  "type": "object",
+                  "unevaluatedProperties": false
+                }
+              },
+              "required": [
+                "crs_tax_form",
+                "us_tax_status"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "forms": {
+          "properties": {
+            "COMMON__BACKGROUND_CHECK": {
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "adverse_media_status": {
+                        "enum": [
+                          "MAJOR",
+                          "MINOR"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "adverse_media_status"
+                    ]
+                  },
+                  "then": {
+                    "required": [
+                      "adverse_media_pages"
+                    ]
+                  }
+                }
+              ],
+              "properties": {
+                "_object": {
+                  "description": "System-generated identifier with uuid as object name",
+                  "format": "iri",
+                  "readOnly": true,
+                  "type": "string",
+                  "x-tf-accepted-objects": [
+                    {
+                      "@archetype": "form",
+                      "@kind": "COMMON__BACKGROUND_CHECK"
+                    }
+                  ]
+                },
+                "_relationKind": {
+                  "const": "COMMON__BACKGROUND_CHECK"
+                },
+                "additional_info": {
+                  "type": "string"
+                },
+                "adhoc_search_job": {
+                  "properties": {
+                    "_object": {
+                      "description": "System-generated identifier with uuid as object name",
+                      "format": "iri",
+                      "readOnly": true,
+                      "type": "string",
+                      "x-tf-accepted-objects": [
+                        {
+                          "@archetype": "job",
+                          "@kind": "unit_adhoc_search"
+                        }
+                      ]
+                    },
+                    "_relationKind": {
+                      "const": "unit_adhoc_search"
+                    }
+                  },
+                  "required": [
+                    "_object",
+                    "_relationKind"
+                  ],
+                  "type": "object",
+                  "unevaluatedProperties": false
+                },
+                "adverse_media_pages": {
+                  "properties": {
+                    "files": {
+                      "items": {
+                        "properties": {
+                          "_object": {
+                            "description": "System-generated identifier with uuid as object name",
+                            "format": "iri",
+                            "readOnly": true,
+                            "type": "string",
+                            "x-tf-accepted-objects": [
+                              {
+                                "@archetype": "file",
+                                "@kind": "form_attachment"
+                              }
+                            ]
+                          },
+                          "_relationKind": {
+                            "const": "form_attachment"
+                          }
+                        },
+                        "required": [
+                          "_object",
+                          "_relationKind"
+                        ],
+                        "type": "object",
+                        "unevaluatedProperties": false
+                      },
+                      "type": "array"
+                    },
+                    "is_no_document": {
+                      "type": "boolean"
+                    },
+                    "reason": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object",
+                  "unevaluatedProperties": false
+                },
+                "adverse_media_status": {
+                  "enum": [
+                    "MAJOR",
+                    "MINOR",
+                    "NOT_FOUND"
+                  ],
+                  "type": "string"
+                },
+                "is_sanctions": {
+                  "type": "boolean"
+                },
+                "liveness_check_jobs": {
+                  "items": {
+                    "properties": {
+                      "_object": {
+                        "description": "System-generated identifier with uuid as object name",
+                        "format": "iri",
+                        "readOnly": true,
+                        "type": "string",
+                        "x-tf-accepted-objects": [
+                          {
+                            "@archetype": "record",
+                            "@kind": "liveness_check"
+                          }
+                        ]
+                      },
+                      "_relationKind": {
+                        "const": "liveness_check"
+                      }
+                    },
+                    "required": [
+                      "_object",
+                      "_relationKind"
+                    ],
+                    "type": "object",
+                    "unevaluatedProperties": false
+                  },
+                  "type": "array"
+                },
+                "pep_status": {
+                  "enum": [
+                    "PEP",
+                    "FAMILY_MEMBER",
+                    "ASSOCIATED_WITH_PEP",
+                    "DEPEPED",
+                    "NOT_PEP"
+                  ],
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "INDIVIDUAL_ENTITY__CONTACT_DETAILS": {
+              "properties": {
+                "_object": {
+                  "description": "System-generated identifier with uuid as object name",
+                  "format": "iri",
+                  "readOnly": true,
+                  "type": "string",
+                  "x-tf-accepted-objects": [
+                    {
+                      "@archetype": "form",
+                      "@kind": "INDIVIDUAL_ENTITY__CONTACT_DETAILS"
+                    }
+                  ]
+                },
+                "_relationKind": {
+                  "const": "INDIVIDUAL_ENTITY__CONTACT_DETAILS"
+                },
+                "contact_details": {
+                  "items": {
+                    "properties": {
+                      "email": {
+                        "format": "email",
+                        "type": "string"
+                      },
+                      "notes": {
+                        "type": "string"
+                      },
+                      "phone": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object",
+                    "unevaluatedProperties": false
+                  },
+                  "type": "array"
+                },
+                "email": {
+                  "format": "email",
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "phone": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "email",
+                "phone"
+              ],
+              "type": "object"
+            },
+            "INDIVIDUAL_ENTITY__PERSONAL_DETAILS": {
+              "x-tf-logical-boundary": ["BASIC_INFO"],
+              "properties": {
+                "_object": {
+                  "description": "System-generated identifier with uuid as object name",
+                  "format": "iri",
+                  "readOnly": true,
+                  "type": "string",
+                  "x-tf-accepted-objects": [
+                    {
+                      "@archetype": "form",
+                      "@kind": "INDIVIDUAL_ENTITY__PERSONAL_DETAILS"
+                    }
+                  ]
+                },
+                "_relationKind": {
+                  "const": "INDIVIDUAL_ENTITY__PERSONAL_DETAILS"
+                },
+                "birth_city": {
+                  "type": "string"
+                },
+                "birth_country": {
+                  "enum": [
+                    "AF",
+                    "AX",
+                    "AL",
+                    "DZ",
+                    "AD",
+                    "AO",
+                    "AI",
+                    "AQ",
+                    "AG",
+                    "AR",
+                    "AM",
+                    "AW",
+                    "AU",
+                    "AT",
+                    "AZ",
+                    "BS",
+                    "BH",
+                    "BD",
+                    "BB",
+                    "BY",
+                    "BE",
+                    "BZ",
+                    "BJ",
+                    "BM",
+                    "BT",
+                    "BO",
+                    "BQ",
+                    "BA",
+                    "BW",
+                    "BV",
+                    "IO",
+                    "BR",
+                    "VG",
+                    "BN",
+                    "BG",
+                    "BF",
+                    "BI",
+                    "KH",
+                    "CM",
+                    "CA",
+                    "CV",
+                    "KY",
+                    "CF",
+                    "TD",
+                    "CL",
+                    "CN",
+                    "CX",
+                    "CC",
+                    "CO",
+                    "KM",
+                    "CG",
+                    "CK",
+                    "CR",
+                    "HR",
+                    "CU",
+                    "CW",
+                    "CY",
+                    "CZ",
+                    "CD",
+                    "DK",
+                    "DJ",
+                    "DM",
+                    "DO",
+                    "TL",
+                    "EC",
+                    "EG",
+                    "SV",
+                    "GQ",
+                    "ER",
+                    "EE",
+                    "ET",
+                    "FO",
+                    "FK",
+                    "FJ",
+                    "FI",
+                    "FR",
+                    "GF",
+                    "PF",
+                    "TF",
+                    "GA",
+                    "GM",
+                    "GE",
+                    "DE",
+                    "GH",
+                    "GI",
+                    "GR",
+                    "GL",
+                    "GD",
+                    "GP",
+                    "GU",
+                    "GT",
+                    "GG",
+                    "GN",
+                    "GW",
+                    "GY",
+                    "HT",
+                    "HM",
+                    "HN",
+                    "HK",
+                    "HU",
+                    "IS",
+                    "IN",
+                    "ID",
+                    "IR",
+                    "IQ",
+                    "IE",
+                    "IM",
+                    "IL",
+                    "IT",
+                    "CI",
+                    "JM",
+                    "JP",
+                    "JE",
+                    "JO",
+                    "KZ",
+                    "KE",
+                    "KI",
+                    "KW",
+                    "KG",
+                    "MY-L",
+                    "LA",
+                    "LV",
+                    "LB",
+                    "LS",
+                    "LR",
+                    "LY",
+                    "LI",
+                    "LT",
+                    "LU",
+                    "MO",
+                    "MK",
+                    "MG",
+                    "MW",
+                    "MY",
+                    "MV",
+                    "ML",
+                    "MT",
+                    "MH",
+                    "MQ",
+                    "MR",
+                    "MU",
+                    "YT",
+                    "MX",
+                    "FM",
+                    "MD",
+                    "MC",
+                    "MN",
+                    "ME",
+                    "MS",
+                    "MA",
+                    "MZ",
+                    "MM",
+                    "NA",
+                    "NR",
+                    "NP",
+                    "AN",
+                    "NL",
+                    "NC",
+                    "NZ",
+                    "NI",
+                    "NE",
+                    "NG",
+                    "NU",
+                    "NF",
+                    "KP",
+                    "MP",
+                    "NO",
+                    "OM",
+                    "PK",
+                    "PW",
+                    "PS",
+                    "PA",
+                    "PG",
+                    "PY",
+                    "PE",
+                    "PH",
+                    "PN",
+                    "PL",
+                    "PT",
+                    "PR",
+                    "QA",
+                    "RE",
+                    "RO",
+                    "RU",
+                    "RW",
+                    "PM",
+                    "AS",
+                    "WS",
+                    "SM",
+                    "ST",
+                    "SA",
+                    "SN",
+                    "RS",
+                    "SC",
+                    "SL",
+                    "SG",
+                    "SX",
+                    "SK",
+                    "SI",
+                    "SB",
+                    "SO",
+                    "ZA",
+                    "GS",
+                    "KR",
+                    "SS",
+                    "ES",
+                    "LK",
+                    "BL",
+                    "MF",
+                    "SH",
+                    "KN",
+                    "LC",
+                    "VC",
+                    "SD",
+                    "SR",
+                    "SJ",
+                    "SZ",
+                    "SE",
+                    "CH",
+                    "SY",
+                    "TW",
+                    "TJ",
+                    "TZ",
+                    "TH",
+                    "TG",
+                    "TK",
+                    "TO",
+                    "TT",
+                    "TN",
+                    "TR",
+                    "TM",
+                    "TC",
+                    "TV",
+                    "UM",
+                    "AE",
+                    "UG",
+                    "UA",
+                    "GB",
+                    "US",
+                    "UY",
+                    "UZ",
+                    "VU",
+                    "VA",
+                    "VE",
+                    "VN",
+                    "VI",
+                    "WF",
+                    "EH",
+                    "YE",
+                    "ZM",
+                    "ZW"
+                  ],
+                  "type": "string"
+                },
+                "birth_date": {
+                  "format": "date",
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "citizenships": {
+                  "items": {
+                    "properties": {
+                      "citizenship": {
+                        "enum": [
+                          "AF",
+                          "AX",
+                          "AL",
+                          "DZ",
+                          "AD",
+                          "AO",
+                          "AI",
+                          "AQ",
+                          "AG",
+                          "AR",
+                          "AM",
+                          "AW",
+                          "AU",
+                          "AT",
+                          "AZ",
+                          "BS",
+                          "BH",
+                          "BD",
+                          "BB",
+                          "BY",
+                          "BE",
+                          "BZ",
+                          "BJ",
+                          "BM",
+                          "BT",
+                          "BO",
+                          "BQ",
+                          "BA",
+                          "BW",
+                          "BV",
+                          "IO",
+                          "BR",
+                          "VG",
+                          "BN",
+                          "BG",
+                          "BF",
+                          "BI",
+                          "KH",
+                          "CM",
+                          "CA",
+                          "CV",
+                          "KY",
+                          "CF",
+                          "TD",
+                          "CL",
+                          "CN",
+                          "CX",
+                          "CC",
+                          "CO",
+                          "KM",
+                          "CG",
+                          "CK",
+                          "CR",
+                          "HR",
+                          "CU",
+                          "CW",
+                          "CY",
+                          "CZ",
+                          "CD",
+                          "DK",
+                          "DJ",
+                          "DM",
+                          "DO",
+                          "TL",
+                          "EC",
+                          "EG",
+                          "SV",
+                          "GQ",
+                          "ER",
+                          "EE",
+                          "ET",
+                          "FO",
+                          "FK",
+                          "FJ",
+                          "FI",
+                          "FR",
+                          "GF",
+                          "PF",
+                          "TF",
+                          "GA",
+                          "GM",
+                          "GE",
+                          "DE",
+                          "GH",
+                          "GI",
+                          "GR",
+                          "GL",
+                          "GD",
+                          "GP",
+                          "GU",
+                          "GT",
+                          "GG",
+                          "GN",
+                          "GW",
+                          "GY",
+                          "HT",
+                          "HM",
+                          "HN",
+                          "HK",
+                          "HU",
+                          "IS",
+                          "IN",
+                          "ID",
+                          "IR",
+                          "IQ",
+                          "IE",
+                          "IM",
+                          "IL",
+                          "IT",
+                          "CI",
+                          "JM",
+                          "JP",
+                          "JE",
+                          "JO",
+                          "KZ",
+                          "KE",
+                          "KI",
+                          "KW",
+                          "KG",
+                          "MY-L",
+                          "LA",
+                          "LV",
+                          "LB",
+                          "LS",
+                          "LR",
+                          "LY",
+                          "LI",
+                          "LT",
+                          "LU",
+                          "MO",
+                          "MK",
+                          "MG",
+                          "MW",
+                          "MY",
+                          "MV",
+                          "ML",
+                          "MT",
+                          "MH",
+                          "MQ",
+                          "MR",
+                          "MU",
+                          "YT",
+                          "MX",
+                          "FM",
+                          "MD",
+                          "MC",
+                          "MN",
+                          "ME",
+                          "MS",
+                          "MA",
+                          "MZ",
+                          "MM",
+                          "NA",
+                          "NR",
+                          "NP",
+                          "AN",
+                          "NL",
+                          "NC",
+                          "NZ",
+                          "NI",
+                          "NE",
+                          "NG",
+                          "NU",
+                          "NF",
+                          "KP",
+                          "MP",
+                          "NO",
+                          "OM",
+                          "PK",
+                          "PW",
+                          "PS",
+                          "PA",
+                          "PG",
+                          "PY",
+                          "PE",
+                          "PH",
+                          "PN",
+                          "PL",
+                          "PT",
+                          "PR",
+                          "QA",
+                          "RE",
+                          "RO",
+                          "RU",
+                          "RW",
+                          "PM",
+                          "AS",
+                          "WS",
+                          "SM",
+                          "ST",
+                          "SA",
+                          "SN",
+                          "RS",
+                          "SC",
+                          "SL",
+                          "SG",
+                          "SX",
+                          "SK",
+                          "SI",
+                          "SB",
+                          "SO",
+                          "ZA",
+                          "GS",
+                          "KR",
+                          "SS",
+                          "ES",
+                          "LK",
+                          "BL",
+                          "MF",
+                          "SH",
+                          "KN",
+                          "LC",
+                          "VC",
+                          "SD",
+                          "SR",
+                          "SJ",
+                          "SZ",
+                          "SE",
+                          "CH",
+                          "SY",
+                          "TW",
+                          "TJ",
+                          "TZ",
+                          "TH",
+                          "TG",
+                          "TK",
+                          "TO",
+                          "TT",
+                          "TN",
+                          "TR",
+                          "TM",
+                          "TC",
+                          "TV",
+                          "UM",
+                          "AE",
+                          "UG",
+                          "UA",
+                          "GB",
+                          "US",
+                          "UY",
+                          "UZ",
+                          "VU",
+                          "VA",
+                          "VE",
+                          "VN",
+                          "VI",
+                          "WF",
+                          "EH",
+                          "YE",
+                          "ZM",
+                          "ZW"
+                        ],
+                        "type": "string"
+                      },
+                      "documents": {
+                        "allOf": [
+                          {
+                            "else": {
+                              "properties": {
+                                "reason": {
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "reason"
+                              ]
+                            },
+                            "if": {
+                              "properties": {
+                                "is_no_document": {
+                                  "const": false
+                                }
+                              },
+                              "required": [
+                                "is_no_document"
+                              ]
+                            },
+                            "then": {
+                              "properties": {
+                                "files": {
+                                  "minItems": 1
+                                }
+                              },
+                              "required": [
+                                "files"
+                              ]
+                            }
+                          }
+                        ],
+                        "properties": {
+                          "document_check_job": {
+                            "properties": {
+                              "_object": {
+                                "description": "System-generated identifier with uuid as object name",
+                                "format": "iri",
+                                "readOnly": true,
+                                "type": "string"
+                              },
+                              "_relationKind": {
+                                "const": "document_check"
+                              }
+                            },
+                            "required": [
+                              "_object",
+                              "_relationKind"
+                            ],
+                            "type": "object"
+                          },
+                          "files": {
+                            "items": {
+                              "properties": {
+                                "_object": {
+                                  "description": "System-generated identifier with uuid as object name",
+                                  "format": "iri",
+                                  "readOnly": true,
+                                  "type": "string"
+                                },
+                                "_relationKind": {
+                                  "const": "form_attachment"
+                                }
+                              },
+                              "required": [
+                                "_object",
+                                "_relationKind"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "is_no_document": {
+                            "type": "boolean"
+                          },
+                          "reason": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "passport_expiry_date": {
+                        "format": "date",
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "passport_number": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "citizenship",
+                      "passport_number",
+                      "passport_expiry_date",
+                      "documents"
+                    ],
+                    "type": "object",
+                    "unevaluatedProperties": false
+                  },
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "is_iip": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "citizenships",
+                "birth_date",
+                "birth_country"
+              ],
+              "type": "object"
+            },
+            "INDIVIDUAL_ENTITY__REGISTERED_ADDRESS": {
+              "x-tf-logical-boundary": ["BASIC_INFO"],
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "is_mailing_address": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "is_mailing_address"
+                    ]
+                  },
+                  "then": {
+                    "required": [
+                      "mailing_address"
+                    ]
+                  }
+                }
+              ],
+              "properties": {
+                "_object": {
+                  "description": "System-generated identifier with uuid as object name",
+                  "format": "iri",
+                  "readOnly": true,
+                  "type": "string",
+                  "x-tf-accepted-objects": [
+                    {
+                      "@archetype": "form",
+                      "@kind": "INDIVIDUAL_ENTITY__REGISTERED_ADDRESS"
+                    }
+                  ]
+                },
+                "_relationKind": {
+                  "const": "INDIVIDUAL_ENTITY__REGISTERED_ADDRESS"
+                },
+                "address": {
+                  "x-tf-logical-boundary": ["REGISTERED_ADDRESS"],
+                  "properties": {
+                    "city": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "country": {
+                      "enum": [
+                        "AF",
+                        "AX",
+                        "AL",
+                        "DZ",
+                        "AD",
+                        "AO",
+                        "AI",
+                        "AQ",
+                        "AG",
+                        "AR",
+                        "AM",
+                        "AW",
+                        "AU",
+                        "AT",
+                        "AZ",
+                        "BS",
+                        "BH",
+                        "BD",
+                        "BB",
+                        "BY",
+                        "BE",
+                        "BZ",
+                        "BJ",
+                        "BM",
+                        "BT",
+                        "BO",
+                        "BQ",
+                        "BA",
+                        "BW",
+                        "BV",
+                        "IO",
+                        "BR",
+                        "VG",
+                        "BN",
+                        "BG",
+                        "BF",
+                        "BI",
+                        "KH",
+                        "CM",
+                        "CA",
+                        "CV",
+                        "KY",
+                        "CF",
+                        "TD",
+                        "CL",
+                        "CN",
+                        "CX",
+                        "CC",
+                        "CO",
+                        "KM",
+                        "CG",
+                        "CK",
+                        "CR",
+                        "HR",
+                        "CU",
+                        "CW",
+                        "CY",
+                        "CZ",
+                        "CD",
+                        "DK",
+                        "DJ",
+                        "DM",
+                        "DO",
+                        "TL",
+                        "EC",
+                        "EG",
+                        "SV",
+                        "GQ",
+                        "ER",
+                        "EE",
+                        "ET",
+                        "FO",
+                        "FK",
+                        "FJ",
+                        "FI",
+                        "FR",
+                        "GF",
+                        "PF",
+                        "TF",
+                        "GA",
+                        "GM",
+                        "GE",
+                        "DE",
+                        "GH",
+                        "GI",
+                        "GR",
+                        "GL",
+                        "GD",
+                        "GP",
+                        "GU",
+                        "GT",
+                        "GG",
+                        "GN",
+                        "GW",
+                        "GY",
+                        "HT",
+                        "HM",
+                        "HN",
+                        "HK",
+                        "HU",
+                        "IS",
+                        "IN",
+                        "ID",
+                        "IR",
+                        "IQ",
+                        "IE",
+                        "IM",
+                        "IL",
+                        "IT",
+                        "CI",
+                        "JM",
+                        "JP",
+                        "JE",
+                        "JO",
+                        "KZ",
+                        "KE",
+                        "KI",
+                        "KW",
+                        "KG",
+                        "MY-L",
+                        "LA",
+                        "LV",
+                        "LB",
+                        "LS",
+                        "LR",
+                        "LY",
+                        "LI",
+                        "LT",
+                        "LU",
+                        "MO",
+                        "MK",
+                        "MG",
+                        "MW",
+                        "MY",
+                        "MV",
+                        "ML",
+                        "MT",
+                        "MH",
+                        "MQ",
+                        "MR",
+                        "MU",
+                        "YT",
+                        "MX",
+                        "FM",
+                        "MD",
+                        "MC",
+                        "MN",
+                        "ME",
+                        "MS",
+                        "MA",
+                        "MZ",
+                        "MM",
+                        "NA",
+                        "NR",
+                        "NP",
+                        "AN",
+                        "NL",
+                        "NC",
+                        "NZ",
+                        "NI",
+                        "NE",
+                        "NG",
+                        "NU",
+                        "NF",
+                        "KP",
+                        "MP",
+                        "NO",
+                        "OM",
+                        "PK",
+                        "PW",
+                        "PS",
+                        "PA",
+                        "PG",
+                        "PY",
+                        "PE",
+                        "PH",
+                        "PN",
+                        "PL",
+                        "PT",
+                        "PR",
+                        "QA",
+                        "RE",
+                        "RO",
+                        "RU",
+                        "RW",
+                        "PM",
+                        "AS",
+                        "WS",
+                        "SM",
+                        "ST",
+                        "SA",
+                        "SN",
+                        "RS",
+                        "SC",
+                        "SL",
+                        "SG",
+                        "SX",
+                        "SK",
+                        "SI",
+                        "SB",
+                        "SO",
+                        "ZA",
+                        "GS",
+                        "KR",
+                        "SS",
+                        "ES",
+                        "LK",
+                        "BL",
+                        "MF",
+                        "SH",
+                        "KN",
+                        "LC",
+                        "VC",
+                        "SD",
+                        "SR",
+                        "SJ",
+                        "SZ",
+                        "SE",
+                        "CH",
+                        "SY",
+                        "TW",
+                        "TJ",
+                        "TZ",
+                        "TH",
+                        "TG",
+                        "TK",
+                        "TO",
+                        "TT",
+                        "TN",
+                        "TR",
+                        "TM",
+                        "TC",
+                        "TV",
+                        "UM",
+                        "AE",
+                        "UG",
+                        "UA",
+                        "GB",
+                        "US",
+                        "UY",
+                        "UZ",
+                        "VU",
+                        "VA",
+                        "VE",
+                        "VN",
+                        "VI",
+                        "WF",
+                        "EH",
+                        "YE",
+                        "ZM",
+                        "ZW"
+                      ],
+                      "type": "string"
+                    },
+                    "house_number": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "postcode": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "region": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "street_name": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "street_name",
+                    "house_number",
+                    "city",
+                    "region",
+                    "postcode",
+                    "country"
+                  ],
+                  "type": "object",
+                  "unevaluatedProperties": false
+                },
+                "is_mailing_address": {
+                  "type": "boolean"
+                },
+                "mailing_address": {
+                  "properties": {
+                    "city": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "country": {
+                      "enum": [
+                        "AF",
+                        "AX",
+                        "AL",
+                        "DZ",
+                        "AD",
+                        "AO",
+                        "AI",
+                        "AQ",
+                        "AG",
+                        "AR",
+                        "AM",
+                        "AW",
+                        "AU",
+                        "AT",
+                        "AZ",
+                        "BS",
+                        "BH",
+                        "BD",
+                        "BB",
+                        "BY",
+                        "BE",
+                        "BZ",
+                        "BJ",
+                        "BM",
+                        "BT",
+                        "BO",
+                        "BQ",
+                        "BA",
+                        "BW",
+                        "BV",
+                        "IO",
+                        "BR",
+                        "VG",
+                        "BN",
+                        "BG",
+                        "BF",
+                        "BI",
+                        "KH",
+                        "CM",
+                        "CA",
+                        "CV",
+                        "KY",
+                        "CF",
+                        "TD",
+                        "CL",
+                        "CN",
+                        "CX",
+                        "CC",
+                        "CO",
+                        "KM",
+                        "CG",
+                        "CK",
+                        "CR",
+                        "HR",
+                        "CU",
+                        "CW",
+                        "CY",
+                        "CZ",
+                        "CD",
+                        "DK",
+                        "DJ",
+                        "DM",
+                        "DO",
+                        "TL",
+                        "EC",
+                        "EG",
+                        "SV",
+                        "GQ",
+                        "ER",
+                        "EE",
+                        "ET",
+                        "FO",
+                        "FK",
+                        "FJ",
+                        "FI",
+                        "FR",
+                        "GF",
+                        "PF",
+                        "TF",
+                        "GA",
+                        "GM",
+                        "GE",
+                        "DE",
+                        "GH",
+                        "GI",
+                        "GR",
+                        "GL",
+                        "GD",
+                        "GP",
+                        "GU",
+                        "GT",
+                        "GG",
+                        "GN",
+                        "GW",
+                        "GY",
+                        "HT",
+                        "HM",
+                        "HN",
+                        "HK",
+                        "HU",
+                        "IS",
+                        "IN",
+                        "ID",
+                        "IR",
+                        "IQ",
+                        "IE",
+                        "IM",
+                        "IL",
+                        "IT",
+                        "CI",
+                        "JM",
+                        "JP",
+                        "JE",
+                        "JO",
+                        "KZ",
+                        "KE",
+                        "KI",
+                        "KW",
+                        "KG",
+                        "MY-L",
+                        "LA",
+                        "LV",
+                        "LB",
+                        "LS",
+                        "LR",
+                        "LY",
+                        "LI",
+                        "LT",
+                        "LU",
+                        "MO",
+                        "MK",
+                        "MG",
+                        "MW",
+                        "MY",
+                        "MV",
+                        "ML",
+                        "MT",
+                        "MH",
+                        "MQ",
+                        "MR",
+                        "MU",
+                        "YT",
+                        "MX",
+                        "FM",
+                        "MD",
+                        "MC",
+                        "MN",
+                        "ME",
+                        "MS",
+                        "MA",
+                        "MZ",
+                        "MM",
+                        "NA",
+                        "NR",
+                        "NP",
+                        "AN",
+                        "NL",
+                        "NC",
+                        "NZ",
+                        "NI",
+                        "NE",
+                        "NG",
+                        "NU",
+                        "NF",
+                        "KP",
+                        "MP",
+                        "NO",
+                        "OM",
+                        "PK",
+                        "PW",
+                        "PS",
+                        "PA",
+                        "PG",
+                        "PY",
+                        "PE",
+                        "PH",
+                        "PN",
+                        "PL",
+                        "PT",
+                        "PR",
+                        "QA",
+                        "RE",
+                        "RO",
+                        "RU",
+                        "RW",
+                        "PM",
+                        "AS",
+                        "WS",
+                        "SM",
+                        "ST",
+                        "SA",
+                        "SN",
+                        "RS",
+                        "SC",
+                        "SL",
+                        "SG",
+                        "SX",
+                        "SK",
+                        "SI",
+                        "SB",
+                        "SO",
+                        "ZA",
+                        "GS",
+                        "KR",
+                        "SS",
+                        "ES",
+                        "LK",
+                        "BL",
+                        "MF",
+                        "SH",
+                        "KN",
+                        "LC",
+                        "VC",
+                        "SD",
+                        "SR",
+                        "SJ",
+                        "SZ",
+                        "SE",
+                        "CH",
+                        "SY",
+                        "TW",
+                        "TJ",
+                        "TZ",
+                        "TH",
+                        "TG",
+                        "TK",
+                        "TO",
+                        "TT",
+                        "TN",
+                        "TR",
+                        "TM",
+                        "TC",
+                        "TV",
+                        "UM",
+                        "AE",
+                        "UG",
+                        "UA",
+                        "GB",
+                        "US",
+                        "UY",
+                        "UZ",
+                        "VU",
+                        "VA",
+                        "VE",
+                        "VN",
+                        "VI",
+                        "WF",
+                        "EH",
+                        "YE",
+                        "ZM",
+                        "ZW"
+                      ],
+                      "type": "string"
+                    },
+                    "house_number": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "postcode": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "region": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "street_name": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "street_name",
+                    "house_number",
+                    "city",
+                    "region",
+                    "postcode",
+                    "country"
+                  ],
+                  "type": "object",
+                  "unevaluatedProperties": false
+                },
+                "supporting_documents": {
+                  "items": {
+                    "properties": {
+                      "document_type": {
+                        "enum": [
+                          "UTILITY_BILL",
+                          "TAX_STATEMENT",
+                          "LEASE_AGREEMENT",
+                          "BANK_STATEMENT",
+                          "LETTER_ISSUED_BY_A_PUBLIC_AUTHORITY",
+                          "OTHER"
+                        ],
+                        "type": "string"
+                      },
+                      "files": {
+                        "items": {
+                          "properties": {
+                            "_object": {
+                              "description": "System-generated identifier with uuid as object name",
+                              "format": "iri",
+                              "readOnly": true,
+                              "type": "string",
+                              "x-tf-accepted-objects": [
+                                {
+                                  "@archetype": "file",
+                                  "@kind": "form_attachment"
+                                }
+                              ]
+                            },
+                            "_relationKind": {
+                              "const": "form_attachment"
+                            }
+                          },
+                          "required": [
+                            "_object",
+                            "_relationKind"
+                          ],
+                          "type": "object",
+                          "unevaluatedProperties": false
+                        },
+                        "type": "array"
+                      },
+                      "is_no_document": {
+                        "type": "boolean"
+                      },
+                      "reason": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object",
+                    "unevaluatedProperties": false
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "address"
+              ],
+              "type": "object"
+            },
+            "INDIVIDUAL_ENTITY__SELF": {
+              "x-tf-logical-boundary": ["BASIC_INFO"],
+              "properties": {
+                "_object": {
+                  "description": "System-generated identifier with uuid as object name",
+                  "format": "iri",
+                  "readOnly": true,
+                  "type": "string",
+                  "x-tf-accepted-objects": [
+                    {
+                      "@archetype": "form",
+                      "@kind": "INDIVIDUAL_ENTITY__SELF"
+                    }
+                  ]
+                },
+                "_relationKind": {
+                  "const": "INDIVIDUAL_ENTITY__SELF"
+                },
+                "first_name": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "last_name": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "middle_name": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "first_name",
+                "last_name"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "threads": {
+          "items": {
+            "description": "System-generated identifier with uuid as object name",
+            "format": "iri",
+            "readOnly": true,
+            "type": "string",
+            "x-tf-accepted-objects": [
+              {
+                "@archetype": "record",
+                "@kind": "thread"
+              }
+            ]
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "forms"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    }
+  },
+  "required": [
+    "@id",
+    "@schema",
+    "@archetype",
+    "@kind",
+    "@meta",
+    "@labels"
+  ],
+  "type": "object"
+}

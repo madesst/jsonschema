@@ -43,24 +43,26 @@ type Flag struct {
 }
 
 type List struct {
-	Valid            bool                   `json:"valid"`
-	EvaluationPath   string                 `json:"evaluationPath"`
-	SchemaLocation   string                 `json:"schemaLocation"`
-	InstanceLocation string                 `json:"instanceLocation"`
-	Annotations      map[string]interface{} `json:"annotations,omitempty"`
-	Errors           map[string]string      `json:"errors,omitempty"`
-	Details          []List                 `json:"details,omitempty"`
+	Valid              bool                   `json:"valid"`
+	EvaluationPath     string                 `json:"evaluationPath"`
+	SchemaLocation     string                 `json:"schemaLocation"`
+	InstanceLocation   string                 `json:"instanceLocation"`
+	Annotations        map[string]interface{} `json:"annotations,omitempty"`
+	Errors             map[string]string      `json:"errors,omitempty"`
+	Details            []List                 `json:"details,omitempty"`
+	XTFLogicalBoundary []string               `json:"x-tf-logical-boundary,omitempty"`
 }
 
 type EvaluationResult struct {
-	schema           *Schema                     `json:"-"`
-	Valid            bool                        `json:"valid"`
-	EvaluationPath   string                      `json:"evaluationPath"`
-	SchemaLocation   string                      `json:"schemaLocation"`
-	InstanceLocation string                      `json:"instanceLocation"`
-	Annotations      map[string]interface{}      `json:"annotations,omitempty"`
-	Errors           map[string]*EvaluationError `json:"errors,omitempty"` // Store error messages here
-	Details          []*EvaluationResult         `json:"details,omitempty"`
+	schema             *Schema                     `json:"-"`
+	Valid              bool                        `json:"valid"`
+	EvaluationPath     string                      `json:"evaluationPath"`
+	SchemaLocation     string                      `json:"schemaLocation"`
+	InstanceLocation   string                      `json:"instanceLocation"`
+	Annotations        map[string]interface{}      `json:"annotations,omitempty"`
+	Errors             map[string]*EvaluationError `json:"errors,omitempty"` // Store error messages here
+	Details            []*EvaluationResult         `json:"details,omitempty"`
+	XTFLogicalBoundary []string                    `json:"x-tf-logical-boundary,omitempty"`
 }
 
 func NewEvaluationResult(schema *Schema) *EvaluationResult {
@@ -171,62 +173,107 @@ func (e *EvaluationResult) ToFlag() *Flag {
 }
 
 // ToList converts the evaluation results into a list format with optional hierarchy
-// includeHierarchy is variadic; if not provided, it defaults to true
-func (e *EvaluationResult) ToList(includeHierarchy ...bool) *List {
-	// Set default value for includeHierarchy to true
+// options[0] is includeHierarchy (default: true)
+// options[1] is onlyErrors (default: false)
+func (e *EvaluationResult) ToList(options ...bool) *List {
 	hierarchyIncluded := true
-	if len(includeHierarchy) > 0 {
-		hierarchyIncluded = includeHierarchy[0]
+	onlyErrors := false
+	if len(options) > 0 {
+		hierarchyIncluded = options[0]
+	}
+	if len(options) > 1 {
+		onlyErrors = options[1]
 	}
 
-	return e.ToLocalizeList(nil, hierarchyIncluded)
+	return e.ToLocalizeList(nil, hierarchyIncluded, onlyErrors)
 }
 
 // ToLocalizeList converts the evaluation results into a list format with optional hierarchy with localization
-// includeHierarchy is variadic; if not provided, it defaults to true
-func (e *EvaluationResult) ToLocalizeList(localizer *i18n.Localizer, includeHierarchy ...bool) *List {
-	// Set default value for includeHierarchy to true
+func (e *EvaluationResult) ToLocalizeList(localizer *i18n.Localizer, options ...bool) *List {
 	hierarchyIncluded := true
-	if len(includeHierarchy) > 0 {
-		hierarchyIncluded = includeHierarchy[0]
+	onlyErrors := false
+	if len(options) > 0 {
+		hierarchyIncluded = options[0]
+	}
+	if len(options) > 1 {
+		onlyErrors = options[1]
+	}
+
+	// 1. Собираем границы (то, что пришло от родителя + свои собственные из схемы)
+	var currentBoundaries []string
+	if len(e.XTFLogicalBoundary) > 0 {
+		currentBoundaries = append(currentBoundaries, e.XTFLogicalBoundary...)
+	}
+	if e.schema != nil && len(e.schema.XTFLogicalBoundary) > 0 {
+		currentBoundaries = append(currentBoundaries, e.schema.XTFLogicalBoundary...)
 	}
 
 	list := &List{
-		Valid:            e.Valid,
-		EvaluationPath:   e.EvaluationPath,
-		SchemaLocation:   e.SchemaLocation,
-		InstanceLocation: e.InstanceLocation,
-		Annotations:      e.Annotations,
-		Errors:           e.convertErrors(localizer),
-		Details:          make([]List, 0),
+		Valid:              e.Valid,
+		EvaluationPath:     e.EvaluationPath,
+		SchemaLocation:     e.SchemaLocation,
+		InstanceLocation:   e.InstanceLocation,
+		Annotations:        e.Annotations,
+		Errors:             e.convertErrors(localizer),
+		Details:            make([]List, 0),
+		XTFLogicalBoundary: currentBoundaries,
 	}
 
 	if hierarchyIncluded {
 		for _, detail := range e.Details {
-			childList := detail.ToLocalizeList(localizer, true) // recursively include hierarchy
+			// ОТСЕКАЕМ успешные проверки, если запрошены только ошибки
+			if onlyErrors && detail.Valid {
+				continue
+			}
+
+			// Прокидываем состояние вниз: передаем накопленные границы дочернему узлу
+			detail.XTFLogicalBoundary = currentBoundaries
+			childList := detail.ToLocalizeList(localizer, true, onlyErrors) // recursively include hierarchy
 			list.Details = append(list.Details, *childList)
 		}
 	} else {
-		e.flattenDetailsToList(localizer, list, e.Details) // flat structure
+		// Для плоского списка
+		for _, detail := range e.Details {
+			detail.XTFLogicalBoundary = currentBoundaries
+		}
+		e.flattenDetailsToList(localizer, list, e.Details, onlyErrors)
 	}
 
 	return list
 }
 
-func (e *EvaluationResult) flattenDetailsToList(localizer *i18n.Localizer, list *List, details []*EvaluationResult) {
+func (e *EvaluationResult) flattenDetailsToList(localizer *i18n.Localizer, list *List, details []*EvaluationResult, onlyErrors bool) {
 	for _, detail := range details {
+		// ОТСЕКАЕМ успешные проверки для плоского списка
+		if onlyErrors && detail.Valid {
+			continue
+		}
+
+		// Собираем границы дочернего узла
+		var currentBoundaries []string
+		if len(detail.XTFLogicalBoundary) > 0 {
+			currentBoundaries = append(currentBoundaries, detail.XTFLogicalBoundary...)
+		}
+		if detail.schema != nil && len(detail.schema.XTFLogicalBoundary) > 0 {
+			currentBoundaries = append(currentBoundaries, detail.schema.XTFLogicalBoundary...)
+		}
+
 		flatDetail := List{
-			Valid:            detail.Valid,
-			EvaluationPath:   detail.EvaluationPath,
-			SchemaLocation:   detail.SchemaLocation,
-			InstanceLocation: detail.InstanceLocation,
-			Annotations:      detail.Annotations,
-			Errors:           detail.convertErrors(localizer),
+			Valid:              detail.Valid,
+			EvaluationPath:     detail.EvaluationPath,
+			SchemaLocation:     detail.SchemaLocation,
+			InstanceLocation:   detail.InstanceLocation,
+			Annotations:        detail.Annotations,
+			Errors:             detail.convertErrors(localizer),
+			XTFLogicalBoundary: currentBoundaries,
 		}
 		list.Details = append(list.Details, flatDetail)
 
 		if len(detail.Details) > 0 {
-			e.flattenDetailsToList(localizer, list, detail.Details)
+			for _, childDetail := range detail.Details {
+				childDetail.XTFLogicalBoundary = currentBoundaries
+			}
+			e.flattenDetailsToList(localizer, list, detail.Details, onlyErrors)
 		}
 	}
 }

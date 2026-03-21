@@ -1,0 +1,102 @@
+{
+  "@id": "tf://00000000-0000-0000-0000-000000000000@madesst/unit/INDIVIDUAL_ENTITY/0407ceef-9ee2-4af5-be7d-eadd544e13aa",
+  "@schema": "json-ir://00000000-0000-0000-0000-000000000000@madesst/unit/finance/INDIVIDUAL_ENTITY?26ec0d95-e753-4dba-aa96-dc73df0bb7d8",
+  "@archetype": "unit",
+  "@kind": "INDIVIDUAL_ENTITY",
+  "@labels": {
+    "name": "[FIXTURES] Applicant Person"
+  },
+  "@meta": {
+    "@author": {
+      "@id": "SCHEDULER_ROBOT",
+      "@kind": "SYSTEM"
+    },
+    "@contentUpdatedAt": "2026-03-20T13:06:52Z",
+    "@createdAt": "2026-03-20T13:06:45Z",
+    "@etag": "0e36559a92beddaa42eb1aaf70949d0a",
+    "@isDataValid": false,
+    "@relations": {
+      "INDIVIDUAL_ENTITY__PERSONAL_DETAILS": {
+        "tf://00000000-0000-0000-0000-000000000000@madesst/form/INDIVIDUAL_ENTITY__PERSONAL_DETAILS/0648c835-60ec-439a-b813-e3b288f699d5": {}
+      },
+      "INDIVIDUAL_ENTITY__REGISTERED_ADDRESS": {
+        "tf://00000000-0000-0000-0000-000000000000@madesst/form/INDIVIDUAL_ENTITY__REGISTERED_ADDRESS/9e64ccf2-ac02-41ee-ab6c-3499e587f8ef": {}
+      },
+      "INDIVIDUAL_ENTITY__SELF": {
+        "tf://00000000-0000-0000-0000-000000000000@madesst/form/INDIVIDUAL_ENTITY__SELF/2cc320e8-e2a6-4ac5-b93f-6b01960bf656": {}
+      },
+      "form_attachment": {
+        "tf://00000000-0000-0000-0000-000000000000@madesst/file/form_attachment/e58f5ce2-68de-4de1-9705-35bd1af6e7c2": {}
+      }
+    },
+    "@source": {
+      "@id": "tf://ffffffff-ffff-ffff-ffff-ffffffffffff@madesst/unit/INDIVIDUAL_ENTITY/bf759ddb-0f04-4656-b214-bd1952d77a97",
+      "@updatedAt": "2026-03-20T13:06:23Z",
+      "@version": "8cae444c-c733-4d98-bce1-26ac3322e7a2"
+    },
+    "@updatedAt": "2026-03-20T13:06:52Z",
+    "@updater": {
+      "@id": "SCHEDULER_ROBOT",
+      "@kind": "SYSTEM"
+    },
+    "@version": "8f1beb93-c3b8-46c1-9808-71e40d7a230b",
+    "@with": {
+      "INDIVIDUAL_ENTITY__PERSONAL_DETAILS": [
+        "tf://00000000-0000-0000-0000-000000000000@madesst/form/INDIVIDUAL_ENTITY__PERSONAL_DETAILS/0648c835-60ec-439a-b813-e3b288f699d5"
+      ],
+      "INDIVIDUAL_ENTITY__REGISTERED_ADDRESS": [
+        "tf://00000000-0000-0000-0000-000000000000@madesst/form/INDIVIDUAL_ENTITY__REGISTERED_ADDRESS/9e64ccf2-ac02-41ee-ab6c-3499e587f8ef"
+      ],
+      "INDIVIDUAL_ENTITY__SELF": [
+        "tf://00000000-0000-0000-0000-000000000000@madesst/form/INDIVIDUAL_ENTITY__SELF/2cc320e8-e2a6-4ac5-b93f-6b01960bf656"
+      ],
+      "form_attachment": [
+        "tf://00000000-0000-0000-0000-000000000000@madesst/file/form_attachment/e58f5ce2-68de-4de1-9705-35bd1af6e7c2"
+      ]
+    }
+  },
+  "@data": {
+    "connections": {},
+    "context_connections": {},
+    "context_forms": {},
+    "forms": {
+      "INDIVIDUAL_ENTITY__PERSONAL_DETAILS": {
+        "_object": "tf://00000000-0000-0000-0000-000000000000@madesst/form/INDIVIDUAL_ENTITY__PERSONAL_DETAILS/0648c835-60ec-439a-b813-e3b288f699d5",
+        "_relationKind": "INDIVIDUAL_ENTITY__PERSONAL_DETAILS",
+        "birth_city": "Rewritten birth city",
+        "birth_country": "US",
+        "birth_date": "1980-01-01",
+        "citizenships": [
+          {
+            "citizenship": "US",
+            "documents": {
+              "files": [
+                {
+                  "_object": "tf://00000000-0000-0000-0000-000000000000@madesst/file/form_attachment/e58f5ce2-68de-4de1-9705-35bd1af6e7c2",
+                  "_relationKind": "form_attachment"
+                }
+              ]
+            },
+            "passport_expiry_date": "2022-01-01",
+            "passport_number": "123456"
+          }
+        ]
+      },
+      "INDIVIDUAL_ENTITY__REGISTERED_ADDRESS": {
+        "_object": "tf://00000000-0000-0000-0000-000000000000@madesst/form/INDIVIDUAL_ENTITY__REGISTERED_ADDRESS/9e64ccf2-ac02-41ee-ab6c-3499e587f8ef",
+        "_relationKind": "INDIVIDUAL_ENTITY__REGISTERED_ADDRESS",
+        "address": {
+          "city": "Some city",
+          "country": "RU",
+          "house_number": "Some house number",
+          "postcode": "Some postcode"
+        }
+      },
+      "INDIVIDUAL_ENTITY__SELF": {
+        "_object": "tf://00000000-0000-0000-0000-000000000000@madesst/form/INDIVIDUAL_ENTITY__SELF/2cc320e8-e2a6-4ac5-b93f-6b01960bf656",
+        "_relationKind": "INDIVIDUAL_ENTITY__SELF",
+        "name": "[FIXTURES] Applicant Person"
+      }
+    }
+  }
+}

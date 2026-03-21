@@ -108,7 +108,7 @@ type Schema struct {
 	Examples    []interface{} `json:"examples,omitempty"`    // Examples of the instance data that validates against this schema.
 
 	XTFAcceptedObjects []interface{} `json:"x-tf-accepted-objects,omitempty"`
-	XTFSubstituteValue string        `json:"x-tf-substitute-value,omitempty"`
+	XTFLogicalBoundary []string      `json:"x-tf-logical-boundary,omitempty"`
 }
 
 // newSchema parses JSON schema data and returns a Schema object.
