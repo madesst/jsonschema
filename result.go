@@ -204,8 +204,8 @@ func (e *EvaluationResult) ToLocalizeList(localizer *i18n.Localizer, options ...
 	if len(e.XTFLogicalBoundary) > 0 {
 		currentBoundaries = append(currentBoundaries, e.XTFLogicalBoundary...)
 	}
-	if e.schema != nil && len(e.schema.XTFLogicalBoundary) > 0 {
-		currentBoundaries = append(currentBoundaries, e.schema.XTFLogicalBoundary...)
+	if e.schema != nil && len(e.schema.XTFLogicalBoundaries) > 0 {
+		currentBoundaries = append(currentBoundaries, e.schema.XTFLogicalBoundaries...)
 	}
 
 	list := &List{
@@ -254,8 +254,8 @@ func (e *EvaluationResult) flattenDetailsToList(localizer *i18n.Localizer, list 
 		if len(detail.XTFLogicalBoundary) > 0 {
 			currentBoundaries = append(currentBoundaries, detail.XTFLogicalBoundary...)
 		}
-		if detail.schema != nil && len(detail.schema.XTFLogicalBoundary) > 0 {
-			currentBoundaries = append(currentBoundaries, detail.schema.XTFLogicalBoundary...)
+		if detail.schema != nil && len(detail.schema.XTFLogicalBoundaries) > 0 {
+			currentBoundaries = append(currentBoundaries, detail.schema.XTFLogicalBoundaries...)
 		}
 
 		flatDetail := List{
