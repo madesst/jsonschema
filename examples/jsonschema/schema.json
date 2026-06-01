@@ -1476,7 +1476,7 @@
               "type": "object"
             },
             "INDIVIDUAL_ENTITY__PERSONAL_DETAILS": {
-              "x-tf-logical-boundary": ["BASIC_INFO"],
+              "x-tf-facets": ["BASIC_INFO"],
               "properties": {
                 "_object": {
                   "description": "System-generated identifier with uuid as object name",
@@ -2134,7 +2134,7 @@
               "type": "object"
             },
             "INDIVIDUAL_ENTITY__REGISTERED_ADDRESS": {
-              "x-tf-logical-boundary": ["BASIC_INFO"],
+              "x-tf-facets": ["BASIC_INFO"],
               "allOf": [
                 {
                   "if": {
@@ -2171,7 +2171,7 @@
                   "const": "INDIVIDUAL_ENTITY__REGISTERED_ADDRESS"
                 },
                 "address": {
-                  "x-tf-logical-boundary": ["REGISTERED_ADDRESS"],
+                  "x-tf-facets": ["REGISTERED_ADDRESS"],
                   "properties": {
                     "city": {
                       "minLength": 1,
@@ -2815,7 +2815,7 @@
               "type": "object"
             },
             "INDIVIDUAL_ENTITY__SELF": {
-              "x-tf-logical-boundary": ["BASIC_INFO"],
+              "x-tf-facets": ["BASIC_INFO"],
               "properties": {
                 "_object": {
                   "description": "System-generated identifier with uuid as object name",
